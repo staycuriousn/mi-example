@@ -318,13 +318,15 @@ table.opps td.name { max-width: 320px; overflow: hidden; text-overflow: ellipsis
   padding: 0 4px; margin-right: 6px; background: var(--ink-100); color: var(--ink-900);
 }
 .catmark.g { background: var(--ok-bg); color: var(--ok); }
-.tl .tlhead { position: relative; height: 34px; font-size: 11px; color: var(--text-sub); }
-.tl .tlhead .tlstart { position: absolute; left: 0; bottom: 2px; }
-.tl .tlhead .tlend { position: absolute; right: 0; bottom: 2px; }
+.tl .tlhead { position: relative; height: 14px; font-size: 11px; }
 .tl .tlhead .tltodaylab {
-  position: absolute; top: 0; transform: translateX(-50%);
+  position: absolute; bottom: -7px; transform: translateX(-50%); line-height: 16px;
   color: var(--ink); font-weight: 600; white-space: nowrap; text-align: center;
+  background: #fff; padding: 0 4px; z-index: 2;
 }
+.tl .tlfoot { position: relative; height: 16px; font-size: 11px; color: var(--text-sub); }
+.tl .tlfoot .tlstart { position: absolute; left: 0; top: 0; }
+.tl .tlfoot .tlend { position: absolute; right: 0; top: 0; }
 
 table.mini { width: 100%; border-collapse: collapse; }
 table.mini th { font-size: 12px; font-weight: 600; color: var(--text-sub); text-align: left; padding: 8px 10px; border-bottom: 2px solid var(--ink); white-space: nowrap; }
