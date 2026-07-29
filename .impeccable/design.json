@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-29T09:00:00Z",
+  "generatedAt": "2026-07-29T11:30:00Z",
   "title": "Design System: Epson Korea MI Platform",
   "extensions": {
     "colorMeta": {
@@ -63,6 +63,12 @@
           "#f9e9ee",
           "#fcf4f6"
         ]
+      },
+      "scrim": {
+        "role": "overlay",
+        "displayName": "Ink Scrim",
+        "canonical": "rgba(10, 20, 50, 0.28)",
+        "tonalRamp": []
       }
     },
     "typographyMeta": {

@@ -30,18 +30,28 @@ export default function App() {
       fetchJson('/api/opportunities'),
       fetchJson('/api/sales-plan'),
       fetchJson('/api/accounts'),
+      fetchJson('/api/sensing-events'),
+      fetchJson('/api/search-trends'),
     ])
-      .then(([opp, plan, acc]) => {
+      .then(([opp, plan, acc, evt, trends]) => {
         const nameById = Object.fromEntries(acc.accounts.map(a => [a.accountId, a.accountName]))
         const opportunities = opp.opportunities.map(o => ({
           ...o,
           accountName: nameById[o.accountId] ?? o.accountId,
         }))
-        setData({ opportunities, plan, accounts: acc.accounts })
+        setData({ opportunities, plan, accounts: acc.accounts, events: evt.events, trends })
       })
       .catch(e => setError(e.message))
   }
   useEffect(load, [])
+
+  // 승격·기각·보류 등 이벤트 상태 변경 (1차: 세션 내 메모리 반영, 백엔드 저장은 2차)
+  const updateEvent = (eventId, patch) =>
+    setData(d => ({ ...d, events: d.events.map(e => (e.eventId === eventId ? { ...e, ...patch } : e)) }))
+
+  // 승격 폼 저장 → 탭1 파이프라인(리드 발굴)에 즉시 추가
+  const addOpportunity = opp =>
+    setData(d => ({ ...d, opportunities: [...d.opportunities, opp] }))
 
   const owners = useMemo(
     () => (data ? [...new Set(data.opportunities.map(o => o.owner))].sort() : []),
@@ -54,7 +64,14 @@ export default function App() {
       {tab === 'tab1' ? (
         <Tab1 data={data} error={error} retry={load} filters={filters} setFilters={setFilters} />
       ) : (
-        <Tab2 />
+        <Tab2
+          data={data}
+          error={error}
+          retry={load}
+          filters={filters}
+          updateEvent={updateEvent}
+          addOpportunity={addOpportunity}
+        />
       )}
     </div>
   )

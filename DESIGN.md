@@ -12,6 +12,7 @@ colors:
   ink-black-text: "#1a2233"
   quiet-slate: "#5a6478"
   hairline: "#d9dee8"
+  scrim: "rgba(10, 20, 50, 0.28)"
   achieved-green: "#0e7a55"
   achieved-green-bg: "#e6f3ee"
   caution-amber: "#b26a00"
@@ -66,6 +67,7 @@ typography:
     fontWeight: 400
     lineHeight: 1.45
 rounded:
+  micro: "2px"
   tag: "4px"
   control: "6px"
   card: "8px"
@@ -192,13 +194,15 @@ Salesforce 문법을 명시적으로 거부한다. 사용자 고정 제약: 흰 
 
 ### Shadow Vocabulary
 - **Float** (`box-shadow: 0 4px 16px rgba(0, 26, 86, 0.12)`): 드로어·팝오버 전용. 잉크 색조의 그림자.
+- **Scrim** (`rgba(10, 20, 50, 0.28)`): 드로어 뒤 전면 오버레이 — 잉크 색조의 반투명 막. 순검정 오버레이 금지.
 
 **The Flat-Paper Rule.** 카드·패널·테이블에 그림자를 주지 않는다. 그림자가 필요해 보이면 여백이
 부족한 것이다.
 
 ## Shapes
 
-직선 위주의 지면에 절제된 라운드: 카드·패널 8px, 버튼·입력·셀렉트 6px, 태그 4px. 원형 알약 금지.
+직선 위주의 지면에 절제된 라운드: 카드·패널 8px, 버튼·입력·셀렉트 6px, 태그 4px, 범례 스와치·사업부
+도트 등 10px 이하 마이크로 요소는 2px. 원형 알약 금지(상태 점 6px 원형만 예외).
 파이프라인 단계 사이 연결은 1.5px Ink Faded 스트로크로 그린 "›" 셰브론(9px 회전 사각) — 화살표
 삼각형 채움이 아니라 잉크 선이다.
 

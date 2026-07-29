@@ -55,6 +55,11 @@ def sensing_events():
     return _load("sensing_events")
 
 
+@app.get("/api/search-trends")
+def search_trends():
+    return _load("search_trends")
+
+
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
