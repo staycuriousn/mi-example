@@ -1,0 +1,101 @@
+{
+  "_comment": "계정(Account) 예시 데이터. installedBase는 계정 하위 1:N 설치베이스.",
+  "accounts": [
+    {
+      "accountId": "ACC-0001",
+      "accountName": "A제조(반도체 후공정)",
+      "industry": "제조업-반도체",
+      "companySize": "대",
+      "channel": "직판",
+      "customerSegment": "B2B기업",
+      "owner": "김민준 차장",
+      "installedBase": [
+        { "model": "WF-C21000", "productFamily": "산업용 잉크젯", "quantity": 12, "installDate": "2022-03-01", "maintenanceExpiry": "2027-02-28", "replacementCycleYears": 5 }
+      ]
+    },
+    {
+      "accountId": "ACC-0002",
+      "accountName": "B프랜차이즈 본사",
+      "industry": "리테일-외식프랜차이즈",
+      "companySize": "중소",
+      "channel": "총판",
+      "customerSegment": "B2B2C리테일",
+      "owner": "이서연 대리",
+      "installedBase": [
+        { "model": "TM-T88VII", "productFamily": "영수증프린터", "quantity": 45, "installDate": "2021-05-10", "maintenanceExpiry": "2025-05-09", "replacementCycleYears": 4 }
+      ]
+    },
+    {
+      "accountId": "ACC-0003",
+      "accountName": "경기OO교육청",
+      "industry": "공공-교육",
+      "companySize": "대",
+      "channel": "직판",
+      "customerSegment": "B2G공공",
+      "owner": "박지훈 과장",
+      "installedBase": [
+        { "model": "EB-685W", "productFamily": "교육용 프로젝터", "quantity": 300, "installDate": "2019-08-20", "maintenanceExpiry": "2024-08-19", "replacementCycleYears": 6 }
+      ]
+    },
+    {
+      "accountId": "ACC-0004",
+      "accountName": "OO시청",
+      "industry": "공공-지자체",
+      "companySize": "대",
+      "channel": "총판",
+      "customerSegment": "B2G공공",
+      "owner": "박지훈 과장",
+      "installedBase": [
+        { "model": "WF-C879R", "productFamily": "복합기·MPS", "quantity": 28, "installDate": "2021-11-01", "maintenanceExpiry": "2026-10-31", "replacementCycleYears": 5 }
+      ]
+    },
+    {
+      "accountId": "ACC-0005",
+      "accountName": "C전자부품",
+      "industry": "제조업-전자부품",
+      "companySize": "중소",
+      "channel": "직판",
+      "customerSegment": "B2B기업",
+      "owner": "최유진 차장",
+      "installedBase": [
+        { "model": "GX4-B351S", "productFamily": "SCARA 로봇", "quantity": 6, "installDate": "2023-06-15", "maintenanceExpiry": "2026-06-14", "replacementCycleYears": 7 }
+      ]
+    },
+    {
+      "accountId": "ACC-0006",
+      "accountName": "D디스플레이",
+      "industry": "제조업-디스플레이",
+      "companySize": "대",
+      "channel": "직판",
+      "customerSegment": "B2B기업",
+      "owner": "정현우 부장",
+      "installedBase": [
+        { "model": "PrecisionCore 헤드모듈", "productFamily": "잉크젯 헤드(부품)", "quantity": 40, "installDate": "2024-01-10", "maintenanceExpiry": "2027-01-09", "replacementCycleYears": 3 }
+      ]
+    },
+    {
+      "accountId": "ACC-0007",
+      "accountName": "E물류",
+      "industry": "물류-유통",
+      "companySize": "중소",
+      "channel": "총판",
+      "customerSegment": "B2B기업",
+      "owner": "이서연 대리",
+      "installedBase": [
+        { "model": "CW-C6500", "productFamily": "컬러 라벨프린터", "quantity": 10, "installDate": "2022-09-01", "maintenanceExpiry": "2026-08-31", "replacementCycleYears": 4 }
+      ]
+    },
+    {
+      "accountId": "ACC-0008",
+      "accountName": "F대학병원",
+      "industry": "의료",
+      "companySize": "대",
+      "channel": "총판",
+      "customerSegment": "B2B기업",
+      "owner": "김민준 차장",
+      "installedBase": [
+        { "model": "AM-C550", "productFamily": "복합기·MPS", "quantity": 60, "installDate": "2020-04-01", "maintenanceExpiry": "2025-03-31", "replacementCycleYears": 5 }
+      ]
+    }
+  ]
+}
