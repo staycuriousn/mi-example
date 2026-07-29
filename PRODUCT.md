@@ -52,9 +52,9 @@ Epson Korea 본사의 MI(Market Intelligence) 플랫폼. Salesforce 데이터 �
 
 ## Evidence on Hand
 
-- `data/sample/opportunities.json` — 사업기회 15건 (가상 예시, 합성 데이터로 표기됨)
+- `data/sample/opportunities.json` — 사업기회 24건 (가상 예시, 합성 데이터로 표기됨)
 - `data/sample/accounts.json` — 계정·설치베이스 8건 (가상)
-- `data/sample/sales_plan.json` — 2026년 월별 판매 계획, 연 320억 (가상)
+- `data/sample/sales_plan.json` — 2026년 월별 판매 계획, 연 64억 (가상)
 - `data/sample/sensing_events.json` — 센싱 이벤트 10건 (가상)
 - 실제 고객 데이터·실적·Epson 내부 조직명은 없음 — 화면에 실데이터처럼 보이는 값은 모두 예시로 명시할 것.
 

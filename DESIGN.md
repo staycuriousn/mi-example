@@ -1,114 +1,247 @@
-# DESIGN.md — Epson Korea MI Platform
+---
+name: Epson Korea MI Platform
+description: 순백 바탕에 딥 블루 잉크로 구조를 그리는 실적 모니터링·사전 센싱 대시보드
+colors:
+  paper-white: "#ffffff"
+  epson-ink: "#00339b"
+  ink-deepest: "#001c56"
+  ink-mid: "#3d64c8"
+  ink-faded: "#8fa6e0"
+  ink-wash: "#dce4f7"
+  ink-mist: "#f2f5fc"
+  ink-black-text: "#1a2233"
+  quiet-slate: "#5a6478"
+  hairline: "#d9dee8"
+  achieved-green: "#0e7a55"
+  achieved-green-bg: "#e6f3ee"
+  caution-amber: "#b26a00"
+  caution-amber-bg: "#f8efe0"
+  shortfall-rose: "#b3264c"
+  shortfall-rose-bg: "#f9e9ee"
+  chart-prt: "#2e56c2"
+  chart-pjt: "#0e8fa5"
+  chart-rbt: "#7c5cd1"
+  chart-cmp: "#b26a00"
+typography:
+  display:
+    fontFamily: "Pretendard Variable, Pretendard, Dotum, 돋움, AppleGothic, Helvetica, sans-serif"
+    fontSize: "32px"
+    fontWeight: 700
+    lineHeight: 1.25
+    letterSpacing: "-0.02em"
+  headline:
+    fontFamily: "Pretendard Variable, Pretendard, Dotum, 돋움, AppleGothic, Helvetica, sans-serif"
+    fontSize: "20px"
+    fontWeight: 700
+    lineHeight: 1.4
+    letterSpacing: "-0.01em"
+  title:
+    fontFamily: "Pretendard Variable, Pretendard, Dotum, 돋움, AppleGothic, Helvetica, sans-serif"
+    fontSize: "16px"
+    fontWeight: 600
+    lineHeight: 1.5
+  body:
+    fontFamily: "Pretendard Variable, Pretendard, Dotum, 돋움, AppleGothic, Helvetica, sans-serif"
+    fontSize: "14px"
+    fontWeight: 400
+    lineHeight: 1.57
+  label:
+    fontFamily: "Pretendard Variable, Pretendard, Dotum, 돋움, AppleGothic, Helvetica, sans-serif"
+    fontSize: "12px"
+    fontWeight: 400
+    lineHeight: 1.5
+rounded:
+  tag: "4px"
+  control: "6px"
+  card: "8px"
+spacing:
+  xs: "4px"
+  sm: "8px"
+  md: "12px"
+  lg: "16px"
+  xl: "24px"
+  section: "32px"
+components:
+  button-primary:
+    backgroundColor: "{colors.epson-ink}"
+    textColor: "#ffffff"
+    rounded: "{rounded.control}"
+    padding: "8px 14px"
+  button-primary-hover:
+    backgroundColor: "{colors.ink-deepest}"
+  button-ghost:
+    backgroundColor: "{colors.paper-white}"
+    textColor: "{colors.epson-ink}"
+    rounded: "{rounded.control}"
+    padding: "8px 14px"
+  kpi-card:
+    backgroundColor: "{colors.paper-white}"
+    rounded: "{rounded.card}"
+    padding: "16px"
+  tag-stage:
+    backgroundColor: "{colors.ink-wash}"
+    textColor: "{colors.ink-deepest}"
+    rounded: "{rounded.tag}"
+    padding: "2px 8px"
+---
 
-> v0.1 브랜드 파운데이션. 사용자가 고정한 제약(흰 배경, #00339B, Pretendard 스택)을 시스템으로 확장한 것.
-> UI 구현이 완성되면 빌드 결과 기준으로 컴포넌트 섹션을 갱신한다(impeccable 규약).
+# Design System: Epson Korea MI Platform
 
-## 1. 방향
+## Overview
 
-**모드: Operate** — 영업 실무진이 매일 여는 업무 도구. 표현보다 스캔 속도·일관성·과업 완결이 우선하고, 브랜드는 정밀한 디테일에 산다.
+**Creative North Star: "흰 종이 위의 딥 블루 잉크 (Deep Blue Ink on White Paper)"**
 
-**정체성 한 줄**: 흰 종이 위의 딥 블루 잉크 — Epson의 본업(정밀 인쇄)을 은유로, 순백 배경에 잉크처럼 진한 #00339B가 구조선과 핵심 숫자를 그리는 대시보드.
+정밀 인쇄 회사의 대시보드는 잉크의 논리를 따른다. 순백(#FFFFFF) 종이 위에 Epson 딥 블루(#00339B)가
+구조선·핵심 숫자·활성 상태를 그리고, 나머지는 여백과 1px 헤어라인이 감당한다. 회색 캔버스 위에 흰
+카드를 그림자로 띄우는 범용 BI 툴의 문법(Tableau/PowerBI), 스카이블루 그라데이션과 일러스트의
+Salesforce 문법을 명시적으로 거부한다. 사용자 고정 제약: 흰 배경, 주조색 #00339B, Pretendard 폰트
+스택 — 이 셋은 binding이다.
 
-**경쟁사와의 구별** *(추론 기준)*:
-- HP(밝은 하늘색 원형 로고 룩), Canon(레드), Brother(중명도 네이비+회색 패널), Salesforce(스카이블루 #0176D3 + 클라우드 일러스트), Tableau/PowerBI(회색 캔버스+카드 그림자 범벅)와 겹치지 않는다.
-- 우리 룩의 핵심: **회색 패널·그림자 없음. 순백 바탕 + 딥블루 잉크 라인 + 넉넉한 여백**. 카드 구분은 그림자가 아니라 1px 잉크 라인과 여백이 한다.
+모드는 Operate. 매일 여는 업무 도구이므로 표현보다 스캔 속도와 일관성이 우선하고, 브랜드는 2px 잉크
+룰, tabular-nums 숫자, 시맨틱 밴드 같은 정밀한 디테일에 산다.
 
-## 2. 색
+**Key Characteristics:**
+- 그림자 없는 흰 캔버스 — 구분은 1px 헤어라인과 여백이 한다
+- 섹션 헤더마다 2px 잉크 룰(밑줄) — 잉크가 지면의 구조를 긋는다
+- 모든 수치는 tabular-nums, 금액은 억원 단위
+- 상태는 색+아이콘/라벨 병행, 색 단독 표현 금지
 
-### 고정 (사용자 pinned)
+## Colors
 
-| 토큰 | 값 | 용도 |
-|---|---|---|
-| `--bg` | `#FFFFFF` | 페이지 배경 (전 화면 공통, 회색 캔버스 금지) |
-| `--ink` | `#00339B` | 주조색: 헤더, 핵심 숫자, 주요 버튼, 활성 상태, 구조선 |
+흰 종이 + 잉크 스케일 7단계 + 시맨틱 3색(배경 틴트 동반) + 차트 범주형 4색.
 
-### 파생 스케일 (ink 계열)
+### Primary
+- **Epson Ink** (#00339B): 주조색. 헤더 타이틀, KPI 숫자, 주요 버튼, 활성 탭·세그먼트, 섹션 룰,
+  테이블 헤더 하단 룰, 파이프라인 활성 셀. 잉크가 곧 구조다.
+- **Ink Deepest** (#001C56): 주요 버튼 호버, 드로어 타이틀.
+- **Ink Mid** (#3D64C8): 포커스 링, 보조 강조.
+- **Ink Faded** (#8FA6E0): 차트 계획선, 셰브론 스트로크, 비활성 강조.
+- **Ink Wash** (#DCE4F7): 선택 행 배경, 단계 태그 배경.
+- **Ink Mist** (#F2F5FC): 호버 행, 파이프라인 셀 바탕, 스켈레톤 — 회색 대체재.
 
-| 토큰 | 값 | 용도 |
-|---|---|---|
-| `--ink-900` | `#001C56` | 최고 강조 텍스트, 호버된 주요 버튼 |
-| `--ink-700` | `#00339B` | = `--ink` |
-| `--ink-500` | `#3D64C8` | 보조 강조, 링크 호버 |
-| `--ink-300` | `#8FA6E0` | 비활성 강조, 보조 차트 계열 |
-| `--ink-100` | `#DCE4F7` | 선택 행 배경, 태그 배경 |
-| `--ink-050` | `#F2F5FC` | 호버 행, 섹션 구분 배경 (회색 대체) |
+### Neutral
+- **Ink Black Text** (#1A2233): 본문. 순검정 금지 — 잉크 느낌의 블루블랙.
+- **Quiet Slate** (#5A6478): 보조 텍스트, 캡션, 축 라벨 (흰 배경 대비 5.9:1).
+- **Hairline** (#D9DEE8): 표 괘선, 카드 테두리, 차트 수평 격자.
 
-### 텍스트·경계
+### Semantic (달성률 밴드)
+- **Achieved Green** (#0E7A55 / bg #E6F3EE): 달성 ≥100%, 수주·매출인식 태그.
+- **Caution Amber** (#B26A00 / bg #F8EFE0): 70~99%, 마감 임박.
+- **Shortfall Rose** (#B3264C / bg #F9E9EE): <70%, 만기 경과, 실주. Canon 레드(#CC0000)와 구별되는 로즈.
 
-| 토큰 | 값 | 용도 |
-|---|---|---|
-| `--text` | `#1A2233` | 본문 (순검정 금지, 잉크 느낌의 블루블랙) |
-| `--text-sub` | `#5A6478` | 보조 텍스트, 캡션 |
-| `--line` | `#D9DEE8` | 표 괘선, 카드 테두리 1px |
-| `--line-strong` | `#00339B` | 섹션 헤더 하단 2px 룰(잉크 라인) |
+### Chart Categorical (사업부 고정 매핑, 순서 불변)
+- **PRT 프린터** (#2E56C2) · **PJT 프로젝터** (#0E8FA5) · **RBT 로봇** (#7C5CD1) · **CMP 부품·소재** (#B26A00)
+- dataviz 검증 통과: 명도 밴드 L 0.43–0.77, CVD 인접쌍 ΔE ≥ 10.9, 정상시각 ΔE ≥ 17.5, 대비 ≥ 3:1.
+- #00339B는 명도 밴드 미달로 차트 계열에서 제외 — UI 잉크 전용.
 
-### 시맨틱 (상태는 색+아이콘/라벨 병행 — 색맹 대응)
+**The Ink-Only-Structure Rule.** 색이 구조를 만들 때는 잉크 계열만 쓴다. 회색 배경 패널은 존재하지
+않는다 — 회색처럼 보이는 모든 면은 Ink Mist(#F2F5FC)다.
 
-| 토큰 | 값 | 용도 |
-|---|---|---|
-| `--ok` | `#0E7A55` | 달성(≥100%), 승격 완료 |
-| `--warn` | `#B26A00` | 주의(70~99%), 마감 임박 D-7 |
-| `--risk` | `#B3264C` | 미달(<70%), 만기 경과 — Canon 레드(#CC0000)와 구별되는 로즈 크림슨 |
-| `--neutral` | `#5A6478` | 보류·미확인 |
+**The Never-Color-Alone Rule.** 달성/미달·상태는 항상 색 + ▲▼ 아이콘 또는 텍스트 라벨 병행.
 
-### 데이터 시각화 (사업부 4계열 — 범주형)
+## Typography
 
-| 계열 | 값 | 비고 |
-|---|---|---|
-| PRT 프린터 | `#00339B` | 주조색 = 주력 사업부 |
-| PJT 프로젝터 | `#0E8FA5` | 틸 |
-| RBT 로봇 | `#6B4FBB` | 바이올렛 |
-| CMP 부품·소재 | `#B26A00` | 앰버 |
+**Display/Body Font:** Pretendard Variable (fallback: Pretendard, Dotum, "돋움", AppleGothic, Helvetica, sans-serif) — 사용자 고정.
 
-계획 vs 실적: 계획 = `--ink-300` 라인/외곽선, 실적 = `--ink` 채움. 단일 지표 농담 표현은 ink 스케일 사용.
+**Character:** 단일 패밀리, 굵기와 크기 대비로만 위계를 만든다. 숫자가 주인공인 지면이므로 모든 수치에
+`font-variant-numeric: tabular-nums`가 걸린다.
 
-## 3. 타이포그래피
+### Hierarchy
+- **Display** (700, 32px/40px, -0.02em): KPI 카드 금액 전용. 단위 "억"은 15px 600 Quiet Slate로 축소 병기.
+- **Headline** (700, 20px/28px, -0.01em): 페이지 타이틀 (Epson Ink).
+- **Title** (600, 16px/24px): 섹션 헤더 — 하단 2px 잉크 룰 동반.
+- **Body** (400, 14px/22px): 테이블·폼 기본. 테이블 셀은 13px.
+- **Label** (400, 12px/18px): 캡션, 단위·출처, 축 라벨, 필터 라벨 (Quiet Slate).
 
-**폰트 스택 (사용자 pinned)**: `Pretendard, Dotum, "돋움", AppleGothic, Helvetica, sans-serif`
+**The Tabular Number Rule.** 수치 컬럼은 우측 정렬 + tabular-nums. 금액은 억원 소수 1자리(128.5억),
+100억 이상은 정수. 원 단위는 상세 화면에서만 콤마 병기.
 
-| 레벨 | 크기/행간 | 굵기 | 용도 |
-|---|---|---|---|
-| KPI 숫자 | 32/40 | 700 | KPI 카드 금액 — 숫자는 `font-variant-numeric: tabular-nums` 필수 |
-| H1 | 20/28 | 700 | 페이지 타이틀 |
-| H2 | 16/24 | 600 | 섹션 헤더 (하단 `--line-strong` 2px 룰 동반) |
-| 본문 | 14/22 | 400 | 테이블, 폼 |
-| 캡션 | 12/18 | 400 | 단위·출처 표기, 축 라벨 |
+## Layout
 
-- 금액은 억원 단위 + 소수 1자리(`128.5억`), 상세 화면만 원 단위 콤마.
-- 모든 수치 컬럼 우측 정렬, tabular-nums.
+12컬럼 개념의 단일 컨테이너: max-width 1440px, 좌우 패딩 32px(모바일 16px). 간격 스케일
+4/8/12/16/24/32/48px — 섹션 사이 32px, 카드 내부 16px, 헤더 위 여백 > 아래 여백. 첫 화면(데스크톱
+1440×900)은 헤더(타이틀+탭+필터+액션 버튼) → KPI 4장 한 줄 → 5단계 파이프라인까지.
 
-## 4. 레이아웃·간격
+반응형: 1100px 이하에서 차트 2분할이 1열로, 860px 이하에서 KPI 2×2, 파이프라인 세로 적층(셰브론
+숨김), 액션 버튼 전폭 행, 480px 이하에서 차트 패널 헤더 랩핑 + X축 라벨 격월 솎음. 테이블은
+컨테이너 내부 가로 스크롤(min-width 960px), 페이지 가로 스크롤 금지.
 
-- 간격 스케일: 4 / 8 / 12 / 16 / 24 / 32 / 48px. 섹션 사이 32, 카드 내부 16, 헤더 위 여백 > 아래 여백.
-- 그리드: 12컬럼, max-width 1440, 좌우 패딩 32.
-- **그림자 금지.** 구분은 `--line` 1px 테두리와 여백. 부양(elevation)이 필요한 요소(드롭다운, 모달)만 `0 4px 16px rgba(0,26,86,.12)` 단일 그림자 허용.
-- 모서리: 카드 8px, 버튼·입력 6px, 태그 4px. 원형 알약 남발 금지.
+## Elevation & Depth
 
-## 5. 컴포넌트 원칙
+**그림자 없는 시스템.** 지면 위 요소는 전부 같은 평면에 있고, 구분은 1px Hairline 테두리와 여백이
+한다. 유일한 예외는 지면을 벗어나 떠야 하는 요소 — 드로어(상세 패널)와 팝오버 — 에만 단일 그림자
+허용.
 
-- **KPI 카드**: 흰 바탕, 상단 캡션(지표명) → KPI 숫자(`--ink`) → 하단 달성률(시맨틱 색+▲▼ 아이콘). 테두리 1px.
-- **주요 버튼**: `--ink` 채움/흰 글자. 보조 버튼: 흰 바탕/`--ink` 테두리·글자. 파괴적 동작: `--risk`.
-- **테이블**: 헤더 흰 바탕+`--line-strong` 하단 룰, 행 호버 `--ink-050`, 선택 `--ink-100`. 줄무늬(zebra) 금지 — 괘선으로 충분.
-- **탭**: 텍스트+하단 3px `--ink` 인디케이터. 박스형 탭 금지.
-- **상태 태그**: `--ink-100` 류 연한 배경+진한 글자, 아이콘 병행.
-- **단계 파이프라인 바**: 단계 칸은 `--ink-050` 바탕, 활성/클릭 시 `--ink` 채움. 화살표 셰브론은 `--line` 1px.
-- **차트**: 격자선 `--line` 수평만, 축 라벨 캡션 스타일, 범례는 차트 상단 좌측. 3D·그라데이션·도넛 두께 과장 금지.
+### Shadow Vocabulary
+- **Float** (`box-shadow: 0 4px 16px rgba(0, 26, 86, 0.12)`): 드로어·팝오버 전용. 잉크 색조의 그림자.
 
-## 6. 모션
+**The Flat-Paper Rule.** 카드·패널·테이블에 그림자를 주지 않는다. 그림자가 필요해 보이면 여백이
+부족한 것이다.
 
-- 기본 트랜지션 150ms ease-out (호버·탭 전환·행 선택).
-- 차트 최초 렌더만 400ms 성장 애니메이션, 이후 데이터 갱신은 200ms.
-- 스켈레톤 로딩은 `--ink-050` 단색 펄스. 스피너 남발 금지.
+## Shapes
 
-## 7. 접근성·국제화
+직선 위주의 지면에 절제된 라운드: 카드·패널 8px, 버튼·입력·셀렉트 6px, 태그 4px. 원형 알약 금지.
+파이프라인 단계 사이 연결은 1.5px Ink Faded 스트로크로 그린 "›" 셰브론(9px 회전 사각) — 화살표
+삼각형 채움이 아니라 잉크 선이다.
 
-- 본문 대비 AA 이상 확인됨: `--text`/흰색 13.9:1, `--ink`/흰색 9.5:1, `--text-sub`/흰색 5.9:1.
-- 상태는 색+아이콘/라벨 병행. 포커스 링: 2px `--ink-500` 오프셋 2px.
-- 언어: 한국어 기본. 날짜 `YYYY-MM-DD`, 금액 억원/원 병행 규칙은 타이포 섹션 참조.
+## Components
 
-## 8. 금지 목록 (경쟁사·기성 툴 룩 회피)
+### Buttons
+- **Shape:** 6px radius, 8px 14px padding, 13px/600.
+- **Primary:** Epson Ink 채움 + 흰 글자. Hover: Ink Deepest. (Salesforce Export 등 주 동작)
+- **Ghost:** 흰 바탕 + Epson Ink 1px 테두리·글자. Hover: Ink Mist 바탕. (엑셀 업로드 등 보조 동작)
+- **Focus:** 2px Ink Mid 아웃라인, 오프셋 2px (전역 :focus-visible).
 
-- 회색(#F5F5F5류) 페이지 캔버스 + 흰 카드 + 그림자 조합 (Tableau/PowerBI 룩)
-- 스카이블루 그라데이션, 클라우드/캐릭터 일러스트 (Salesforce 룩)
-- 순수 레드 계열 강조 (Canon), 밝은 시안 원형 모티프 (HP)
-- 도넛 차트 중심 대시보드, 3D 효과, 이모지 아이콘
+### KPI Card
+- 흰 바탕 + 1px Hairline, 8px radius, 16px padding. 위→아래: Label 캡션(지표명) → Display 금액(Epson
+  Ink) → 메타 행(건수 · 달성률 = 시맨틱 색 + ▲▼).
+
+### Pipeline Stage Cell
+- Ink Mist 바탕 + 1px Hairline, 8px radius. 단계명 Label + 금액 16px/700 잉크 + 건수 병기. 클릭
+  가능(버튼) — 활성 시 Epson Ink 채움/흰 글자, aria-pressed. 셀 사이 "›" 잉크 셰브론.
+
+### Table
+- 헤더: 12px/600 Quiet Slate, 하단 2px 잉크 룰, 클릭 정렬(화살표 잉크색). 행: 1px Hairline 괘선,
+  호버 Ink Mist, 선택 Ink Wash. 줄무늬(zebra) 금지. 수치 우측 정렬.
+
+### Tags (단계·상태)
+- 4px radius, 연한 배경 + 진한 글자: 진행 단계 Ink Wash/Ink Deepest, 수주·매출인식
+  green-bg/green, 실주 rose-bg/rose.
+
+### Segmented Control (기간·차트 토글)
+- 1px Hairline 테두리 6px, 칸 사이 1px 구분선. 활성 칸 Epson Ink 채움/흰 글자.
+
+### Charts
+- 수평 격자만(Hairline 1px), 축 라벨 Label 스타일, 범례 차트 상단 좌측(제목 아래). 실적 막대 Epson
+  Ink(상단 4px 라운드, max 26px 폭), 계획선 Ink Faded 2.5px + 흰 5px 케이싱(막대 위 가독성). 호버
+  툴팁: 흰 카드 + Float 그림자 + 스와치·tabular 값. 히트맵 셀은 시맨틱 bg 틴트 + 진한 글자 + 달성률
+  %와 실적/계획 병기.
+
+### Drawer (상세 슬라이드 패널)
+- 우측 고정 480px(모바일 92vw), 흰 바탕 + 좌측 1px Hairline + Float 그림자. 헤더에 2px 잉크 룰.
+  scrim rgba(10,20,50,.28). 220ms ease-out 슬라이드, Esc·scrim 클릭으로 닫기. 본문은 잉크색 소제목
+  그룹(기본 정보 dl 그리드 96px 라벨 컬럼 / Pain Point / Target Spec / 검증 일정 / 관련 사업기회
+  링크 / 설치베이스 카드).
+
+### States
+- **Loading:** Ink Mist 단색 펄스 스켈레톤(1.2s), 실제 레이아웃 자리 유지. 스피너 금지.
+- **Empty:** 1px Hairline 박스 + 제목/보조문 + 해소 방법 안내.
+- **Error:** 동일 박스 + 원인(HTTP 상태)·복구 동작(다시 시도 버튼) 명시.
+
+### Motion
+- 기본 트랜지션 150ms ease-out (호버·탭·행 선택). 드로어 220ms, scrim 200ms. 차트 최초 렌더만 성장
+  애니메이션.
+
+## Do's and Don'ts
+
+### Do:
+- **Do** 섹션 헤더마다 2px Epson Ink 룰을 긋는다 — 잉크가 구조를 만든다.
+- **Do** 모든 수치에 tabular-nums + 우측 정렬, 금액은 억원 표기.
+- **Do** 상태 표현에 색 + 아이콘/라벨을 병행한다.
+- **Do** 차트 계열 색은 사업부 고정 매핑(순서 불변)을 쓴다 — 필터로 계열 수가 바뀌어도 색은 따라가지 않는다.
+
+### Don't:
+- **Don't** 회색 캔버스(#F5F5F5류) + 흰 카드 + 그림자 조합 — BI 툴 기본형 금지. 카드 그림자 자체가 금지(드로어·팝오버 예외).
+- **Don't** 스카이블루 그라데이션, 클라우드/캐릭터 일러스트(Salesforce 룩), 순수 레드 강조(Canon), 밝은 시안 원형 모티프(HP).
+- **Don't** 도넛 차트 중심 구성, 3D·그라데이션 차트, 듀얼 Y축, 이모지 아이콘, zebra 테이블.
+- **Don't** #00339B를 차트 데이터 계열로 쓰지 않는다(명도 밴드 미달) — UI 잉크 전용, 차트는 #2E56C2.
