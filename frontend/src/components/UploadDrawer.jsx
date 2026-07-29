@@ -1,13 +1,74 @@
 import { useEffect, useState } from 'react'
-import { buName, fmtEok } from '../lib/model.js'
+import { BUS, buName, fmtEok, OPEN_STAGES, STAGE_WON, STAGE_REVENUE, STAGE_LOST } from '../lib/model.js'
 
-// 업로드 미리보기(반영 전 확인) + 반영 히스토리(롤백) 드로어
-// mode: 'preview' (preview 객체 존재 시) | 'history'
+const ALL_STAGES = [...OPEN_STAGES, STAGE_WON, STAGE_REVENUE, STAGE_LOST]
+
+// 미리보기 행 인라인 편집기 — 승격 폼처럼 자동 해석 결과를 사용자가 직접 바로잡는다
+function RowEditor({ rec, patch, onChange }) {
+  const v = key => patch[key] ?? rec[key] ?? ''
+  const set = (key, val) => onChange({ ...patch, [key]: val })
+  return (
+    <div className="editgrid">
+      <label>
+        사업부
+        <select value={v('businessUnit')} onChange={e => set('businessUnit', e.target.value)}>
+          {BUS.map(b => (
+            <option key={b.code} value={b.code}>{b.name}</option>
+          ))}
+        </select>
+      </label>
+      <label>
+        채널
+        <select value={v('channel')} onChange={e => set('channel', e.target.value)}>
+          <option value="직판">직판</option>
+          <option value="총판">총판</option>
+        </select>
+      </label>
+      <label>
+        단계
+        <select value={v('stage')} onChange={e => set('stage', e.target.value)}>
+          {ALL_STAGES.map(s => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
+      </label>
+      <label>
+        금액(억)
+        <input
+          type="number"
+          step="0.1"
+          min="0"
+          value={(Number(v('amount')) / 1e8).toString()}
+          onChange={e => set('amount', Math.round(Number(e.target.value) * 1e8))}
+        />
+      </label>
+      <label>
+        수주예정일
+        <input type="date" value={v('closeDate') ?? ''} onChange={e => set('closeDate', e.target.value)} />
+      </label>
+      <label>
+        담당
+        <input type="text" value={v('owner') ?? ''} onChange={e => set('owner', e.target.value)} />
+      </label>
+      {v('channel') === '총판' && (
+        <label>
+          파트너사
+          <input type="text" value={v('partnerAccount') ?? ''} onChange={e => set('partnerAccount', e.target.value)} />
+        </label>
+      )}
+    </div>
+  )
+}
+
+// 업로드 미리보기(반영 전 확인·수정) + 반영 히스토리(롤백) 드로어
 export default function UploadDrawer({ open, mode, preview, onClose, onApplied, onRolledBack }) {
   const [busy, setBusy] = useState(false)
   const [history, setHistory] = useState(null)
   const [confirmId, setConfirmId] = useState(null)
   const [error, setError] = useState(null)
+  const [patches, setPatches] = useState({}) // opportunityId → 수정 patch
+  const [editingId, setEditingId] = useState(null)
+  const [dropIds, setDropIds] = useState([])
 
   useEffect(() => {
     const h = e => { if (e.key === 'Escape') onClose() }
@@ -26,14 +87,26 @@ export default function UploadDrawer({ open, mode, preview, onClose, onApplied, 
     if (open) {
       setError(null)
       setConfirmId(null)
+      setPatches({})
+      setEditingId(null)
+      setDropIds([])
     }
-  }, [open, mode])
+  }, [open, mode, preview?.batchId])
 
   const apply = async () => {
     setBusy(true)
     setError(null)
     try {
-      const res = await fetch(`/api/upload-apply/${preview.batchId}`, { method: 'POST' })
+      const edits = {
+        inserts: ins.filter(r => patches[r.opportunityId]).map(r => ({ opportunityId: r.opportunityId, ...patches[r.opportunityId] })),
+        updates: upd.filter(u => patches[u.after.opportunityId]).map(u => ({ opportunityId: u.after.opportunityId, ...patches[u.after.opportunityId] })),
+        dropIds,
+      }
+      const res = await fetch(`/api/upload-apply/${preview.batchId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(edits),
+      })
       const body = await res.json()
       if (!res.ok) throw new Error(body.detail ?? `HTTP ${res.status}`)
       onApplied(body)
@@ -65,7 +138,48 @@ export default function UploadDrawer({ open, mode, preview, onClose, onApplied, 
   const upd = preview?.opportunities?.updates ?? []
   const plans = preview?.plan?.changes ?? []
   const errs = preview?.errors ?? []
-  const nothing = ins.length + upd.length + plans.length === 0
+  const activeCount = ins.length + upd.length - dropIds.length + plans.length
+  const nothing = activeCount <= 0
+
+  const merged = rec => ({ ...rec, ...(patches[rec.opportunityId] ?? {}) })
+
+  const renderOppRow = (rec, kind, mapNotes) => {
+    const id = rec.opportunityId
+    const m = merged(rec)
+    const isDropped = dropIds.includes(id)
+    const isEdited = Boolean(patches[id])
+    return (
+      <div className="uprow" key={id} style={{ display: 'block', opacity: isDropped ? 0.45 : 1 }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
+          <span className={`tag ${kind === 'update' ? 't-review' : ''}`}>{kind === 'update' ? '갱신' : '신규'}</span>
+          <span className="upname">{kind === 'update' ? `${id} · ` : ''}{m.name}</span>
+          <span className="upmeta num">
+            {buName(m.businessUnit)} · {m.channel}{m.partnerAccount ? `(${m.partnerAccount})` : ''} · {fmtEok(m.amount)}억 · {m.stage} · {m.closeDate}
+          </span>
+          {isEdited && <span className="tag t-won">수정됨</span>}
+          <span style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
+            {!isDropped && (
+              <button className="linklike" onClick={() => setEditingId(e => (e === id ? null : id))}>
+                {editingId === id ? '접기' : '수정'}
+              </button>
+            )}
+            <button className="linklike" style={{ color: isDropped ? 'var(--ink)' : 'var(--risk)' }}
+              onClick={() => setDropIds(d => (isDropped ? d.filter(x => x !== id) : [...d, id]))}>
+              {isDropped ? '되살리기' : '제외'}
+            </button>
+          </span>
+        </div>
+        {mapNotes?.length > 0 && !isDropped && (
+          <div className="upmeta" style={{ marginTop: 2, color: 'var(--ink-500)' }}>
+            ↳ 해석: {mapNotes.join(' · ')}
+          </div>
+        )}
+        {editingId === id && !isDropped && (
+          <RowEditor rec={rec} patch={patches[id] ?? {}} onChange={p => setPatches(ps => ({ ...ps, [id]: p }))} />
+        )}
+      </div>
+    )
+  }
 
   return (
     <>
@@ -74,7 +188,7 @@ export default function UploadDrawer({ open, mode, preview, onClose, onApplied, 
         aria-label={mode === 'preview' ? '업로드 미리보기' : '업로드 반영 히스토리'}>
         <div className="dhead">
           <div className="oid">{mode === 'preview' ? `파일: ${preview?.filename ?? ''}` : '엑셀 업로드'}</div>
-          <h3>{mode === 'preview' ? '업로드 미리보기 — 반영 전 확인' : '반영 히스토리'}</h3>
+          <h3>{mode === 'preview' ? '업로드 미리보기 — 확인·수정 후 반영' : '반영 히스토리'}</h3>
           <button className="close" onClick={onClose} aria-label="닫기">✕</button>
         </div>
         <div className="dbody">
@@ -89,46 +203,24 @@ export default function UploadDrawer({ open, mode, preview, onClose, onApplied, 
               {preview.fieldMode && (
                 <p className="upmeta" style={{ marginTop: 16 }}>
                   표준 양식이 아닌 <b>영업관리 엑셀</b>로 인식하여 컬럼·단위·단계 용어를 자동 해석했습니다.
-                  각 건의 해석 내용을 확인한 뒤 반영해 주세요.
+                  해석이 틀린 건은 [수정]으로 바로잡거나 [제외]한 뒤 반영해 주세요.
                 </p>
               )}
 
               {ins.length > 0 && (
                 <div className="dgroup">
-                  <h4>신규 등록 {ins.length}건</h4>
-                  {ins.map(r => (
-                    <div className="uprow" key={r.opportunityId} style={{ display: 'block' }}>
-                      <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
-                        <span className="tag">신규</span>
-                        <span className="upname">{r.name}</span>
-                        <span className="upmeta num">
-                          {buName(r.businessUnit)} · {r.channel} · {fmtEok(r.amount)}억 · {r.stage}
-                        </span>
-                      </div>
-                      {r.mapNotes?.length > 0 && (
-                        <div className="upmeta" style={{ marginTop: 2, color: 'var(--ink-500)' }}>
-                          ↳ 해석: {r.mapNotes.join(' · ')}
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                  <h4>신규 등록 {ins.length - dropIds.filter(d => ins.some(r => r.opportunityId === d)).length}건</h4>
+                  {ins.map(r => renderOppRow(r, 'insert', r.mapNotes))}
                 </div>
               )}
 
               {upd.length > 0 && (
                 <div className="dgroup">
-                  <h4>기존 갱신 {upd.length}건</h4>
-                  {upd.map(u => (
-                    <div className="uprow" key={u.after.opportunityId}>
-                      <span className="tag t-review">갱신</span>
-                      <span className="upname">{u.after.opportunityId} · {u.after.name}</span>
-                      <span className="upmeta num">
-                        {u.before.stage !== u.after.stage && <>단계 {u.before.stage} → <b>{u.after.stage}</b> · </>}
-                        {u.before.amount !== u.after.amount && <>금액 {fmtEok(u.before.amount)}억 → <b>{fmtEok(u.after.amount)}억</b></>}
-                        {u.before.stage === u.after.stage && u.before.amount === u.after.amount && '상세 필드 변경'}
-                      </span>
-                    </div>
-                  ))}
+                  <h4>기존 갱신 {upd.length - dropIds.filter(d => upd.some(u => u.after.opportunityId === d)).length}건</h4>
+                  {upd.map(u => renderOppRow(u.after, 'update', u.mapNotes ?? [
+                    ...(u.before.stage !== u.after.stage ? [`단계 ${u.before.stage} → ${u.after.stage}`] : []),
+                    ...(u.before.amount !== u.after.amount ? [`금액 ${fmtEok(u.before.amount)}억 → ${fmtEok(u.after.amount)}억`] : []),
+                  ]))}
                 </div>
               )}
 
@@ -162,13 +254,13 @@ export default function UploadDrawer({ open, mode, preview, onClose, onApplied, 
               {nothing && (
                 <div className="statebox" style={{ marginTop: 16 }}>
                   <strong>반영할 변경 내용이 없습니다</strong>
-                  기존 데이터와 동일하거나 전 행이 오류입니다.
+                  기존 데이터와 동일하거나 전 행이 오류·제외 상태입니다.
                 </div>
               )}
 
               <div className="dgroup" style={{ display: 'flex', gap: 12 }}>
                 <button className="btn btn-primary" onClick={apply} disabled={busy || nothing}>
-                  {busy ? '반영 중…' : `반영하기 (${ins.length + upd.length + plans.length}건)`}
+                  {busy ? '반영 중…' : `반영하기 (${activeCount}건)`}
                 </button>
                 <button className="btn btn-ghost" onClick={onClose} disabled={busy}>취소</button>
               </div>

@@ -495,12 +495,50 @@ async def upload_excel(file: UploadFile):
     return preview
 
 
+EDITABLE_FIELDS = {
+    "name", "businessUnit", "channel", "partnerAccount", "stage", "probability",
+    "amount", "closeDate", "owner", "quantity", "productModel", "description",
+}
+
+
+def _apply_edits(batch, edits):
+    """미리보기 화면에서 사용자가 직접 수정한 값을 스테이징 배치에 덮어쓴다."""
+    def merge(target, patch):
+        for k, v in patch.items():
+            if k not in EDITABLE_FIELDS:
+                continue
+            if k == "businessUnit" and v not in BUS:
+                raise HTTPException(status_code=422, detail=f"사업부 코드 오류: {v}")
+            if k == "channel" and v not in CHANNELS:
+                raise HTTPException(status_code=422, detail=f"채널 오류: {v}")
+            if k == "stage" and v not in STAGE_PROB and v != "실주(Lost)":
+                raise HTTPException(status_code=422, detail=f"단계 오류: {v}")
+            target[k] = v
+        if "stage" in patch and "probability" not in patch:
+            target["probability"] = STAGE_PROB.get(patch["stage"], 0)
+
+    for e in edits.get("inserts", []):
+        rec = next((r for r in batch["opportunities"]["inserts"] if r["opportunityId"] == e.get("opportunityId")), None)
+        if rec:
+            merge(rec, e)
+    for e in edits.get("updates", []):
+        u = next((u for u in batch["opportunities"]["updates"] if u["after"]["opportunityId"] == e.get("opportunityId")), None)
+        if u:
+            merge(u["after"], e)
+    dropped = set(edits.get("dropIds", []))
+    if dropped:
+        batch["opportunities"]["inserts"] = [r for r in batch["opportunities"]["inserts"] if r["opportunityId"] not in dropped]
+        batch["opportunities"]["updates"] = [u for u in batch["opportunities"]["updates"] if u["after"]["opportunityId"] not in dropped]
+
+
 @app.post("/api/upload-apply/{batch_id}")
-def upload_apply(batch_id: str):
-    """2단계: 스테이징된 배치를 스토어에 반영하고 히스토리에 기록한다."""
+def upload_apply(batch_id: str, edits: dict | None = None):
+    """2단계: 스테이징된 배치를 (사용자 수정분 반영 후) 스토어에 적용하고 히스토리에 기록한다."""
     batch = STAGING.pop(batch_id, None)
     if not batch:
         raise HTTPException(status_code=404, detail="배치를 찾을 수 없습니다 (이미 반영됐거나 만료)")
+    if edits:
+        _apply_edits(batch, edits)
     opps = STORE["opportunities"]["opportunities"]
     plan_rows = STORE["sales_plan"]["monthlyPlan"]
 
