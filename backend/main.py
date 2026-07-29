@@ -425,10 +425,19 @@ def _parse_workbook(wb, filename):
                 account = _match_account(acct)
                 bu = _guess_bu(f"{model} {name}")
                 notes.append(f"사업부 {bu} 추정 (품목 기반)")
-                channel = account["channel"] if account else "직판"
-                if account:
+                desc_txt = str(vals.get("description") or "")
+                partner = None
+                if "총판" in desc_txt or "총판" in name:
+                    channel = "총판"
+                    pm = re.search(r"총판\s*\(([^)]+)\)", desc_txt)
+                    if pm:
+                        partner = pm.group(1).strip()
+                    notes.append(f"비고의 '총판' 언급 → 채널 총판{f' (파트너 {partner})' if partner else ''}")
+                elif account:
+                    channel = account["channel"]
                     notes.append(f"기존 계정 매칭({account['accountId']}) → 채널 {channel}")
                 else:
+                    channel = "직판"
                     notes.append("신규 업체 → 채널 직판 가정")
                 qty = vals.get("quantity")
                 rec = {
@@ -436,6 +445,7 @@ def _parse_workbook(wb, filename):
                     "name": f"{acct} {name}" if acct not in name else name,
                     "businessUnit": bu,
                     "channel": channel,
+                    "partnerAccount": partner,
                     "customerSegment": account.get("customerSegment") if account else "B2B기업",
                     "productModel": model or None,
                     "productFamily": None,
