@@ -45,13 +45,25 @@ export default function App() {
   }
   useEffect(load, [])
 
-  // 승격·기각·보류 등 이벤트 상태 변경 (1차: 세션 내 메모리 반영, 백엔드 저장은 2차)
-  const updateEvent = (eventId, patch) =>
+  // 승격·기각·보류 등 이벤트 상태 변경 — 화면 즉시 반영 + 백엔드 스토어 저장
+  const updateEvent = (eventId, patch) => {
     setData(d => ({ ...d, events: d.events.map(e => (e.eventId === eventId ? { ...e, ...patch } : e)) }))
+    fetch(`/api/sensing-events/${eventId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    }).catch(() => {})
+  }
 
-  // 승격 폼 저장 → 탭1 파이프라인(리드 발굴)에 즉시 추가
-  const addOpportunity = opp =>
+  // 승격 폼 저장 → 탭1 파이프라인(리드 발굴)에 즉시 추가 + 백엔드 저장 (Export에도 포함됨)
+  const addOpportunity = opp => {
     setData(d => ({ ...d, opportunities: [...d.opportunities, opp] }))
+    fetch('/api/opportunities', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(opp),
+    }).catch(() => {})
+  }
 
   const owners = useMemo(
     () => (data ? [...new Set(data.opportunities.map(o => o.owner))].sort() : []),
@@ -60,7 +72,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <Header tab={tab} setTab={setTab} filters={filters} setFilters={setFilters} owners={owners} />
+      <Header tab={tab} setTab={setTab} filters={filters} setFilters={setFilters} owners={owners} reload={load} />
       {tab === 'tab1' ? (
         <Tab1 data={data} error={error} retry={load} filters={filters} setFilters={setFilters} />
       ) : (

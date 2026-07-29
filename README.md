@@ -19,7 +19,7 @@ Salesforce 데이터 + 외부 공개 데이터를 연계한 **실적 모니터�
 
 ```bash
 # 1) 백엔드 (저장소 루트에서)
-pip install fastapi "uvicorn[standard]"
+pip install fastapi "uvicorn[standard]" python-multipart openpyxl
 uvicorn backend.main:app --port 8000
 
 # 2) 프론트엔드 빌드 후 http://localhost:8000 접속

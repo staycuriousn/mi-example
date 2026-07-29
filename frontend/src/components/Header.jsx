@@ -15,9 +15,38 @@ const Popover = ({ title, children, onClose }) => {
   )
 }
 
-export default function Header({ tab, setTab, filters, setFilters, owners }) {
-  const [pop, setPop] = useState(null) // 'upload' | 'export' | null
+export default function Header({ tab, setTab, filters, setFilters, owners, reload }) {
+  const [pop, setPop] = useState(null) // 'upload-result' | null
+  const [uploadResult, setUploadResult] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const fileRef = useRef(null)
   const set = patch => setFilters(f => ({ ...f, ...patch }))
+
+  const onFile = async e => {
+    const file = e.target.files?.[0]
+    e.target.value = '' // 같은 파일 재선택 허용
+    if (!file) return
+    setUploading(true)
+    setPop(null)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/upload-excel', { method: 'POST', body: fd })
+      const body = await res.json()
+      if (!res.ok) throw new Error(body.detail ?? `HTTP ${res.status}`)
+      setUploadResult({ ok: true, ...body })
+      reload()
+    } catch (err) {
+      setUploadResult({ ok: false, message: err.message })
+    } finally {
+      setUploading(false)
+      setPop('upload-result')
+    }
+  }
+
+  const exportUrl =
+    `/api/export-salesforce?bu=${encodeURIComponent(filters.bu)}` +
+    `&channel=${encodeURIComponent(filters.channel)}&owner=${encodeURIComponent(filters.owner)}`
 
   return (
     <header>
@@ -101,28 +130,40 @@ export default function Header({ tab, setTab, filters, setFilters, owners }) {
         </div>
 
         <div className="actions">
-        <div className="popwrap">
-          <button className="btn btn-ghost" onClick={() => setPop(p => (p === 'upload' ? null : 'upload'))}>
-            ⬆ 엑셀 업로드
-          </button>
-          {pop === 'upload' && (
-            <Popover title="2차 구현 예정" onClose={() => setPop(null)}>
-              실무 관리 엑셀(excel/sales_pipeline_template.xlsx)을 업로드하면 검증 후 모니터링 현황에 자동
-              반영됩니다.
-            </Popover>
-          )}
-        </div>
-        <div className="popwrap">
-          <button className="btn btn-primary" onClick={() => setPop(p => (p === 'export' ? null : 'export'))}>
+          <div className="popwrap">
+            <input ref={fileRef} type="file" accept=".xlsx" onChange={onFile} style={{ display: 'none' }} aria-hidden="true" />
+            <button className="btn btn-ghost" onClick={() => fileRef.current?.click()} disabled={uploading}>
+              {uploading ? '업로드 중…' : '⬆ 엑셀 업로드'}
+            </button>
+            {pop === 'upload-result' && uploadResult && (
+              <Popover title={uploadResult.ok ? '업로드 완료' : '업로드 실패'} onClose={() => setPop(null)}>
+                {uploadResult.ok ? (
+                  <>
+                    사업기회 신규 {uploadResult.opportunities.inserted}건 · 갱신 {uploadResult.opportunities.updated}건
+                    {uploadResult.plan.updated > 0 && <> · 판매계획 {uploadResult.plan.updated}행</>}
+                    {uploadResult.errors.length > 0 && (
+                      <>
+                        <br />
+                        <span style={{ color: 'var(--risk)', fontWeight: 600 }}>오류 {uploadResult.errors.length}건 (미반영):</span>
+                        {uploadResult.errors.slice(0, 5).map((er, i) => (
+                          <div key={i}>· [{er.sheet} {er.row}행] {er.message}</div>
+                        ))}
+                        {uploadResult.errors.length > 5 && <div>… 외 {uploadResult.errors.length - 5}건</div>}
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {uploadResult.message}
+                    <br />양식: excel/sales_pipeline_template.xlsx
+                  </>
+                )}
+              </Popover>
+            )}
+          </div>
+          <a className="btn btn-primary" href={exportUrl} download style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
             ⬇ Salesforce용 Export
-          </button>
-          {pop === 'export' && (
-            <Popover title="2차 구현 예정" onClose={() => setPop(null)}>
-              현재 필터 기준 사업기회를 Salesforce Data Loader import 포맷(엑셀)으로 내려받습니다. 매핑
-              규칙은 excel/salesforce_import_sample.xlsx 참조.
-            </Popover>
-          )}
-        </div>
+          </a>
         </div>
       </div>
     </header>

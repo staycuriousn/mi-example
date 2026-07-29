@@ -1,28 +1,32 @@
 """Epson Korea MI Platform — FastAPI backend.
 
-설계 단계: Salesforce 실연동 없이 data/sample/*.json을 서빙한다.
-프론트엔드 빌드(frontend/dist)가 있으면 정적 서빙까지 담당한다.
+설계 단계: Salesforce 실연동 없이 data/sample/*.json을 시드로 하는
+인메모리 스토어를 서빙한다. 엑셀 업로드는 스토어에 반영되고(서버 재시작 시
+시드로 초기화), Export는 현재 스토어를 Salesforce Data Loader 포맷으로 변환한다.
 
 실행:  uvicorn backend.main:app --reload --port 8000  (저장소 루트에서)
 """
+import io
 import json
+import re
+from datetime import date, datetime
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 ROOT = Path(__file__).resolve().parent.parent
 SAMPLE_DIR = ROOT / "data" / "sample"
 DIST_DIR = ROOT / "frontend" / "dist"
 
-app = FastAPI(title="Epson Korea MI Platform API", version="0.1.0")
+app = FastAPI(title="Epson Korea MI Platform API", version="0.2.0")
 
-# Vite dev 서버(5173)에서의 호출 허용
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
-    allow_methods=["GET"],
+    allow_methods=["GET", "POST", "PATCH"],
     allow_headers=["*"],
 )
 
@@ -35,34 +39,269 @@ def _load(name: str):
         return json.load(f)
 
 
+# ── 인메모리 스토어 (시드: data/sample) ─────────────────────────
+STORE = {
+    "opportunities": _load("opportunities"),
+    "accounts": _load("accounts"),
+    "sales_plan": _load("sales_plan"),
+    "sensing_events": _load("sensing_events"),
+    "search_trends": _load("search_trends"),
+}
+
+BUS = {"PRT", "PJT", "RBT", "CMP"}
+CHANNELS = {"직판", "총판"}
+STAGE_PROB = {s["stage"]: s["probability"] for s in STORE["opportunities"]["stageDefinition"]}
+
+
 @app.get("/api/opportunities")
 def opportunities():
-    return _load("opportunities")
+    return STORE["opportunities"]
 
 
 @app.get("/api/accounts")
 def accounts():
-    return _load("accounts")
+    return STORE["accounts"]
 
 
 @app.get("/api/sales-plan")
 def sales_plan():
-    return _load("sales_plan")
+    return STORE["sales_plan"]
 
 
 @app.get("/api/sensing-events")
 def sensing_events():
-    return _load("sensing_events")
+    return STORE["sensing_events"]
 
 
 @app.get("/api/search-trends")
 def search_trends():
-    return _load("search_trends")
+    return STORE["search_trends"]
 
 
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
+
+
+# ── 승격·상태 변경 저장 ────────────────────────────────────────
+@app.post("/api/opportunities")
+def create_opportunity(opp: dict):
+    opps = STORE["opportunities"]["opportunities"]
+    oid = opp.get("opportunityId")
+    if not oid or not opp.get("name") or not opp.get("amount"):
+        raise HTTPException(status_code=422, detail="opportunityId, name, amount는 필수입니다")
+    existing = next((o for o in opps if o["opportunityId"] == oid), None)
+    if existing:
+        existing.update(opp)
+    else:
+        opps.append(opp)
+    return {"opportunityId": oid, "updated": bool(existing)}
+
+
+@app.patch("/api/sensing-events/{event_id}")
+def update_event(event_id: str, patch: dict):
+    allowed = {"status", "promotedOpportunityId", "assignedOwner"}
+    ev = next((e for e in STORE["sensing_events"]["events"] if e["eventId"] == event_id), None)
+    if not ev:
+        raise HTTPException(status_code=404, detail=f"event not found: {event_id}")
+    ev.update({k: v for k, v in patch.items() if k in allowed})
+    return ev
+
+
+# ── 엑셀 업로드 (실무 양식 → 스토어 반영) ──────────────────────
+# 컬럼명은 excel/sales_pipeline_template.xlsx '사업기회' 시트 헤더와 1:1
+OPP_COLS = {
+    "사업기회ID": "opportunityId",
+    "사업기회명": "name",
+    "고객사명": "accountName",
+    "사업부": "businessUnit",
+    "채널": "channel",
+    "파트너사": "partnerAccount",
+    "고객유형": "customerSegment",
+    "제품군": "productFamily",
+    "대표 모델": "productModel",
+    "예상 수량": "quantity",
+    "예상 금액(원)": "amount",
+    "단계": "stage",
+    "확도(%)": "probability",
+    "예상 수주일": "closeDate",
+    "고객 Pain Point": "painPoint",
+    "요구 조건(Target Spec)": "targetSpec",
+    "Demo·PoC 목표": "demoTargetDate",
+    "검증(QUAL) 목표": "qualTargetDate",
+    "경쟁사": "competitor",
+    "관련 사업기회": "relatedOpportunity",
+    "유입 경로": "leadSource",
+    "담당 영업": "owner",
+    "비고": "description",
+}
+PLAN_COLS = {"연도": "year", "월": "month", "사업부": "businessUnit", "채널": "channel", "목표 금액(원)": "targetAmount"}
+REQUIRED = ["name", "businessUnit", "channel", "stage", "amount", "closeDate"]
+DATE_FIELDS = ["closeDate", "demoTargetDate", "qualTargetDate"]
+
+
+def _to_date(v):
+    if v in (None, ""):
+        return None
+    if isinstance(v, (datetime, date)):
+        return v.strftime("%Y-%m-%d")
+    s = str(v).strip()
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", s):
+        return s
+    raise ValueError(f"날짜 형식 오류(YYYY-MM-DD): {v}")
+
+
+def _next_opp_id(opps):
+    mx = 0
+    for o in opps:
+        m = re.search(r"(\d+)$", o["opportunityId"])
+        if m:
+            mx = max(mx, int(m.group(1)))
+    return f"OPP-2026-{mx + 1:04d}"
+
+
+def _header_map(ws, col_def):
+    headers = [c.value for c in ws[1]]
+    return {idx: col_def[h] for idx, h in enumerate(headers) if h in col_def}
+
+
+@app.post("/api/upload-excel")
+async def upload_excel(file: UploadFile):
+    from openpyxl import load_workbook
+
+    if not file.filename.lower().endswith(".xlsx"):
+        raise HTTPException(status_code=422, detail="xlsx 파일만 업로드할 수 있습니다")
+    try:
+        wb = load_workbook(io.BytesIO(await file.read()), data_only=True)
+    except Exception:
+        raise HTTPException(status_code=422, detail="엑셀 파일을 열 수 없습니다 (양식: sales_pipeline_template.xlsx)")
+
+    result = {"opportunities": {"inserted": 0, "updated": 0}, "plan": {"updated": 0}, "errors": []}
+    opps = STORE["opportunities"]["opportunities"]
+    acc_by_name = {a["accountName"]: a["accountId"] for a in STORE["accounts"]["accounts"]}
+
+    # 시트1: 사업기회
+    if "사업기회" in wb.sheetnames:
+        ws = wb["사업기회"]
+        hmap = _header_map(ws, OPP_COLS)
+        if "name" not in hmap.values():
+            result["errors"].append({"sheet": "사업기회", "row": 1, "message": "헤더가 양식과 다릅니다 (입력가이드 시트 참조)"})
+        else:
+            for r, row in enumerate(ws.iter_rows(min_row=2), start=2):
+                vals = {hmap[i]: c.value for i, c in enumerate(row) if i in hmap}
+                if not any(v not in (None, "") for v in vals.values()):
+                    continue  # 빈 행
+                try:
+                    missing = [k for k in REQUIRED if vals.get(k) in (None, "")]
+                    if missing:
+                        raise ValueError(f"필수값 누락: {', '.join(missing)}")
+                    if vals["businessUnit"] not in BUS:
+                        raise ValueError(f"사업부 코드 오류: {vals['businessUnit']} (PRT/PJT/RBT/CMP)")
+                    if vals["channel"] not in CHANNELS:
+                        raise ValueError(f"채널 오류: {vals['channel']} (직판/총판)")
+                    if vals["stage"] not in STAGE_PROB and vals["stage"] != "실주(Lost)":
+                        raise ValueError(f"단계 오류: {vals['stage']}")
+                    amount = float(str(vals["amount"]).replace(",", ""))
+                    for f_ in DATE_FIELDS:
+                        vals[f_] = _to_date(vals.get(f_))
+                    name = str(vals.get("accountName") or "").strip()
+                    rec = {
+                        **{v: None for v in OPP_COLS.values()},
+                        **{k: (str(v).strip() if isinstance(v, str) else v) for k, v in vals.items()},
+                        "amount": int(amount),
+                        "quantity": int(vals["quantity"]) if vals.get("quantity") not in (None, "") else None,
+                        "probability": int(vals["probability"]) if vals.get("probability") not in (None, "") else STAGE_PROB.get(vals["stage"], 0),
+                        "accountId": acc_by_name.get(name),
+                        "sensingEventId": None,
+                    }
+                    rec.pop("accountName", None)
+                    oid = str(vals.get("opportunityId") or "").strip()
+                    existing = next((o for o in opps if o["opportunityId"] == oid), None) if oid else None
+                    if existing:
+                        existing.update({k: v for k, v in rec.items() if k != "opportunityId"})
+                        result["opportunities"]["updated"] += 1
+                    else:
+                        rec["opportunityId"] = oid or _next_opp_id(opps)
+                        opps.append(rec)
+                        result["opportunities"]["inserted"] += 1
+                except (ValueError, TypeError) as e:
+                    result["errors"].append({"sheet": "사업기회", "row": r, "message": str(e)})
+
+    # 시트2: 판매계획 (연도+월+사업부+채널 키로 목표금액 갱신)
+    if "판매계획" in wb.sheetnames:
+        ws = wb["판매계획"]
+        hmap = _header_map(ws, PLAN_COLS)
+        plan_rows = STORE["sales_plan"]["monthlyPlan"]
+        for r, row in enumerate(ws.iter_rows(min_row=2), start=2):
+            vals = {hmap[i]: c.value for i, c in enumerate(row) if i in hmap}
+            if not any(v not in (None, "") for v in vals.values()):
+                continue
+            try:
+                y, m = int(vals["year"]), int(vals["month"])
+                bu, ch = vals["businessUnit"], vals["channel"]
+                amt = int(float(str(vals["targetAmount"]).replace(",", "")))
+                if bu not in BUS or ch not in CHANNELS or not 1 <= m <= 12:
+                    raise ValueError(f"코드값 오류: {bu}/{ch}/{m}월")
+                target = next(
+                    (p for p in plan_rows if p["year"] == y and p["month"] == m and p["businessUnit"] == bu and p["channel"] == ch),
+                    None,
+                )
+                if target:
+                    target["targetAmount"] = amt
+                else:
+                    plan_rows.append({"year": y, "month": m, "businessUnit": bu, "channel": ch, "targetAmount": amt})
+                result["plan"]["updated"] += 1
+            except (ValueError, TypeError, KeyError) as e:
+                result["errors"].append({"sheet": "판매계획", "row": r, "message": str(e)})
+
+    if "사업기회" not in wb.sheetnames and "판매계획" not in wb.sheetnames:
+        raise HTTPException(status_code=422, detail="'사업기회' 또는 '판매계획' 시트가 필요합니다 (양식: sales_pipeline_template.xlsx)")
+    return result
+
+
+# ── Salesforce Data Loader 포맷 Export ────────────────────────
+SF_COLS = [
+    ("Name", "name"), ("AccountId", "accountId"), ("BusinessUnit__c", "businessUnit"),
+    ("Channel__c", "channel"), ("PartnerAccount__c", "partnerAccount"),
+    ("CustomerSegment__c", "customerSegment"), ("ProductFamily__c", "productFamily"),
+    ("ProductModel__c", "productModel"), ("Quantity__c", "quantity"), ("Amount", "amount"),
+    ("StageName", "stage"), ("Probability", "probability"), ("CloseDate", "closeDate"),
+    ("PainPoint__c", "painPoint"), ("TargetSpec__c", "targetSpec"),
+    ("DemoTargetDate__c", "demoTargetDate"), ("QualTargetDate__c", "qualTargetDate"),
+    ("Competitor__c", "competitor"), ("LeadSource", "leadSource"),
+    ("SensingEventId__c", "sensingEventId"), ("Description", "description"),
+]
+
+
+@app.get("/api/export-salesforce")
+def export_salesforce(bu: str = "ALL", channel: str = "ALL", owner: str = "ALL"):
+    from openpyxl import Workbook
+
+    rows = [
+        o for o in STORE["opportunities"]["opportunities"]
+        if (bu == "ALL" or o.get("businessUnit") == bu)
+        and (channel == "ALL" or o.get("channel") == channel)
+        and (owner == "ALL" or o.get("owner") == owner)
+    ]
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Opportunity_Import"
+    ws.append([c for c, _ in SF_COLS])
+    for o in rows:
+        ws.append([o.get(k) if o.get(k) is not None else "" for _, k in SF_COLS])
+    ws2 = wb.create_sheet("참고")
+    ws2.append(["항목", "내용"])
+    ws2.append(["생성 기준", f"필터 사업부={bu}, 채널={channel}, 담당={owner} · {len(rows)}건"])
+    ws2.append(["용도", "Salesforce Data Loader / Import Wizard용. 필드 매핑 규칙은 excel/salesforce_import_sample.xlsx '매핑표' 시트 참조"])
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    filename = f"salesforce_import_{bu}_{channel}.xlsx"
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 # 프론트엔드 빌드가 있으면 루트에서 정적 서빙 (SPA fallback 포함)
