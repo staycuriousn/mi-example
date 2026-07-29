@@ -21,7 +21,10 @@ export default function EventFeed({ events, onPromote, updateEvent, onSelect, se
   const [cat, setCat] = useState('ALL') // B2B/B2G
   const [status, setStatus] = useState('ALL')
   const [minScore, setMinScore] = useState(0)
+  const [source, setSource] = useState('ALL')
   const [sortBy, setSortBy] = useState('score') // 'score' | 'newest' | 'oldest'
+
+  const sources = useMemo(() => [...new Set(events.map(e => e.source))].sort(), [events])
 
   const SORTS = {
     score: (a, b) => b.aiScore - a.aiScore || b.eventDate.localeCompare(a.eventDate),
@@ -32,9 +35,15 @@ export default function EventFeed({ events, onPromote, updateEvent, onSelect, se
   const rows = useMemo(
     () =>
       events
-        .filter(e => (cat === 'ALL' || e.category === cat) && (status === 'ALL' || e.status === status) && e.aiScore >= minScore)
+        .filter(
+          e =>
+            (cat === 'ALL' || e.category === cat) &&
+            (status === 'ALL' || e.status === status) &&
+            (source === 'ALL' || e.source === source) &&
+            e.aiScore >= minScore
+        )
         .sort(SORTS[sortBy]),
-    [events, cat, status, minScore, sortBy]
+    [events, cat, status, minScore, source, sortBy]
   )
 
   return (
@@ -59,6 +68,13 @@ export default function EventFeed({ events, onPromote, updateEvent, onSelect, se
           <option value={0}>스코어 전체</option>
           <option value={3}>★3 이상</option>
           <option value={4}>★4 이상</option>
+        </select>
+        <select aria-label="수집 출처" value={source} onChange={e => setSource(e.target.value)}
+          style={{ border: '1px solid var(--line)', borderRadius: 6, padding: '6px 8px', fontSize: 13, maxWidth: 180 }}>
+          <option value="ALL">출처 전체</option>
+          {sources.map(s => (
+            <option key={s} value={s}>{s}</option>
+          ))}
         </select>
         <select aria-label="정렬 기준" value={sortBy} onChange={e => setSortBy(e.target.value)}
           style={{ border: '1px solid var(--line)', borderRadius: 6, padding: '6px 8px', fontSize: 13 }}>
