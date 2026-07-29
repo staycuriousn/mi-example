@@ -50,14 +50,6 @@ const DETAIL_SECTIONS = {
       ['집행 시기(추정)', d.expectedExecution],
     ],
   },
-  datalab: {
-    title: '검색량 급증 상세 (네이버 데이터랩)',
-    rows: d => [
-      ['키워드', d.keyword],
-      ['분석 기간', `최근 ${d.periodWeeks}주`],
-      ['전월 대비 증가율', `+${d.momChangePct}%`],
-    ],
-  },
   installbase: {
     title: '내부 설치베이스 파생 상세',
     rows: d => [

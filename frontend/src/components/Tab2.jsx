@@ -4,8 +4,8 @@ import { isWon } from '../lib/model.js'
 import EventFeed from './EventFeed.jsx'
 import EventDetailDrawer from './EventDetailDrawer.jsx'
 import PromoteDrawer from './PromoteDrawer.jsx'
-import { TriggerDist, PromoFunnel, TrendChart } from './SensingPanels.jsx'
-import { BidTimeline, CompetitorTable } from './BidPanel.jsx'
+import { TriggerDist, PromoFunnel } from './SensingPanels.jsx'
+import { EventTimeline, CompetitorTable } from './BidPanel.jsx'
 
 const TODAY = '2026-07-29' // 예시 데이터 기준일 (실서비스에서는 시스템 날짜)
 
@@ -86,6 +86,19 @@ export default function Tab2({ data, error, retry, filters, updateEvent, addOppo
         </div>
       </div>
 
+      <section className="section" aria-label="이벤트 타임라인">
+        <h2>
+          이벤트 타임라인 (B2B·B2G)
+          <span className="hint">B2G 입찰은 공고일→마감일 구간, B2B 이벤트는 발생 시점 · 기준일 {TODAY}</span>
+        </h2>
+        <EventTimeline events={events} today={TODAY} onSelect={setSelectedId} />
+      </section>
+
+      <section className="section" aria-label="경쟁사 낙찰 동향">
+        <h2>경쟁사 낙찰 동향 <span className="hint">재입찰 전략 수립용</span></h2>
+        <CompetitorTable bids={bids} />
+      </section>
+
       <section className="section feedgrid" aria-label="센싱 이벤트">
         <div>
           <h2>
@@ -103,18 +116,7 @@ export default function Tab2({ data, error, retry, filters, updateEvent, addOppo
         <div style={{ display: 'grid', gap: 24 }}>
           <TriggerDist events={events} />
           <PromoFunnel events={events} wonCount={wonFromSensing.length} />
-          <TrendChart trends={data.trends} />
         </div>
-      </section>
-
-      <section className="section" aria-label="B2G 입찰 타임라인">
-        <h2>B2G 입찰 타임라인 <span className="hint">공고일 → 입찰마감일 · 기준일 {TODAY}</span></h2>
-        <BidTimeline bids={bids} today={TODAY} />
-      </section>
-
-      <section className="section" aria-label="경쟁사 낙찰 동향">
-        <h2>경쟁사 낙찰 동향 <span className="hint">재입찰 전략 수립용</span></h2>
-        <CompetitorTable bids={bids} />
       </section>
 
       <EventDetailDrawer
