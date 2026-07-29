@@ -1,5 +1,5 @@
 {
-  "_comment": "외부 센싱 이벤트 통합 스키마 예시 9건. 채용공고는 크롤링이 아닌 고용24(워크넷) Open API 수집(docs/DATA_SOURCE_FEASIBILITY.md 판정 반영), 네이버 데이터랩은 약관상 축적 불가로 제외. 스키마는 docs/MI_PLATFORM_DESIGN.md 2.7~2.9 참조.",
+  "_comment": "외부 센싱 이벤트 통합 스키마 예시 8건. 채용공고는 고용24(워크넷) Open API 수집, 네이버 데이터랩·교육청 웹 크롤링은 제외(docs/DATA_SOURCE_FEASIBILITY.md 판정 반영). 스키마는 docs/MI_PLATFORM_DESIGN.md 2.7~2.9 참조.",
   "events": [
     {
       "eventId": "EVT-2026-0001",
@@ -235,46 +235,6 @@
       }
     },
     {
-      "eventId": "EVT-2026-0008",
-      "category": "B2G",
-      "triggerType": "TRG-05 입찰 공고(신규)",
-      "eventDate": "2026-07-08",
-      "targetName": "부산OO대학교",
-      "matchedAccountId": null,
-      "summary": "강의실 프로젝터 80대 교체 입찰 — 교육청 나라장터 미등재 자체 공고",
-      "source": "교육청 웹 게시 크롤링",
-      "sourceUrl": "https://www.example-univ.ac.kr/bid/2026-031",
-      "reliability": "중",
-      "estimatedBusinessUnit": [
-        "PJT"
-      ],
-      "estimatedProductFamily": "교육용 프로젝터",
-      "potentialSize": {
-        "value": 96000000,
-        "unit": "원"
-      },
-      "aiScore": 4,
-      "status": "승격",
-      "promotedOpportunityId": "OPP-2026-0015",
-      "assignedOwner": "박지훈 과장",
-      "detail": {
-        "type": "bid",
-        "bidId": "UNIV-2026-031",
-        "orderingOrg": "부산OO대학교",
-        "itemCategory": "교육용 프로젝터",
-        "noticeDate": "2026-07-08",
-        "bidDeadline": "2026-08-05",
-        "awardDate": null,
-        "awardedVendor": null,
-        "awardedPrice": null,
-        "awardRate": null,
-        "contractMethod": "제한경쟁입찰(자체)",
-        "specConditions": "레이저 광원, 4,500루멘 이상, 20,000시간",
-        "competitorSpecLockIn": "미확인",
-        "note": "나라장터 미등재 소규모 공고 보완 수집 사례"
-      }
-    },
-    {
       "eventId": "EVT-2026-0010",
       "category": "B2B",
       "triggerType": "TRG-08 유지보수 만기 도래",
@@ -282,7 +242,7 @@
       "targetName": "F대학병원",
       "matchedAccountId": "ACC-0008",
       "summary": "내부 설치베이스: 복합기 60대 유지보수 만기 경과(2025-03-31), 임시 연장 운영 중",
-      "source": "내부 설치베이스 파생",
+      "source": "Salesforce 설치베이스 데이터",
       "sourceUrl": null,
       "reliability": "상",
       "estimatedBusinessUnit": [
