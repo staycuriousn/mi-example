@@ -1,0 +1,727 @@
+{
+  "_comment": "2026년 판매 계획. 월 단위 입력, 분기·연은 롤업. 금액 단위: 원(KRW).",
+  "annualTargets": [
+    {
+      "year": 2026,
+      "businessUnit": "PRT",
+      "channel": "직판",
+      "targetAmount": 1200000000
+    },
+    {
+      "year": 2026,
+      "businessUnit": "PRT",
+      "channel": "총판",
+      "targetAmount": 1400000000
+    },
+    {
+      "year": 2026,
+      "businessUnit": "PJT",
+      "channel": "직판",
+      "targetAmount": 900000000
+    },
+    {
+      "year": 2026,
+      "businessUnit": "PJT",
+      "channel": "총판",
+      "targetAmount": 700000000
+    },
+    {
+      "year": 2026,
+      "businessUnit": "RBT",
+      "channel": "직판",
+      "targetAmount": 1100000000
+    },
+    {
+      "year": 2026,
+      "businessUnit": "RBT",
+      "channel": "총판",
+      "targetAmount": 200000000
+    },
+    {
+      "year": 2026,
+      "businessUnit": "CMP",
+      "channel": "직판",
+      "targetAmount": 800000000
+    },
+    {
+      "year": 2026,
+      "businessUnit": "CMP",
+      "channel": "총판",
+      "targetAmount": 100000000
+    }
+  ],
+  "monthlyPlan": [
+    {
+      "year": 2026,
+      "month": 1,
+      "businessUnit": "PRT",
+      "channel": "직판",
+      "targetAmount": 70000000
+    },
+    {
+      "year": 2026,
+      "month": 2,
+      "businessUnit": "PRT",
+      "channel": "직판",
+      "targetAmount": 70000000
+    },
+    {
+      "year": 2026,
+      "month": 3,
+      "businessUnit": "PRT",
+      "channel": "직판",
+      "targetAmount": 90000000
+    },
+    {
+      "year": 2026,
+      "month": 4,
+      "businessUnit": "PRT",
+      "channel": "직판",
+      "targetAmount": 90000000
+    },
+    {
+      "year": 2026,
+      "month": 5,
+      "businessUnit": "PRT",
+      "channel": "직판",
+      "targetAmount": 100000000
+    },
+    {
+      "year": 2026,
+      "month": 6,
+      "businessUnit": "PRT",
+      "channel": "직판",
+      "targetAmount": 110000000
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "businessUnit": "PRT",
+      "channel": "직판",
+      "targetAmount": 100000000
+    },
+    {
+      "year": 2026,
+      "month": 8,
+      "businessUnit": "PRT",
+      "channel": "직판",
+      "targetAmount": 100000000
+    },
+    {
+      "year": 2026,
+      "month": 9,
+      "businessUnit": "PRT",
+      "channel": "직판",
+      "targetAmount": 120000000
+    },
+    {
+      "year": 2026,
+      "month": 10,
+      "businessUnit": "PRT",
+      "channel": "직판",
+      "targetAmount": 120000000
+    },
+    {
+      "year": 2026,
+      "month": 11,
+      "businessUnit": "PRT",
+      "channel": "직판",
+      "targetAmount": 120000000
+    },
+    {
+      "year": 2026,
+      "month": 12,
+      "businessUnit": "PRT",
+      "channel": "직판",
+      "targetAmount": 110000000
+    },
+    {
+      "year": 2026,
+      "month": 1,
+      "businessUnit": "PRT",
+      "channel": "총판",
+      "targetAmount": 82000000
+    },
+    {
+      "year": 2026,
+      "month": 2,
+      "businessUnit": "PRT",
+      "channel": "총판",
+      "targetAmount": 82000000
+    },
+    {
+      "year": 2026,
+      "month": 3,
+      "businessUnit": "PRT",
+      "channel": "총판",
+      "targetAmount": 105000000
+    },
+    {
+      "year": 2026,
+      "month": 4,
+      "businessUnit": "PRT",
+      "channel": "총판",
+      "targetAmount": 105000000
+    },
+    {
+      "year": 2026,
+      "month": 5,
+      "businessUnit": "PRT",
+      "channel": "총판",
+      "targetAmount": 117000000
+    },
+    {
+      "year": 2026,
+      "month": 6,
+      "businessUnit": "PRT",
+      "channel": "총판",
+      "targetAmount": 128000000
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "businessUnit": "PRT",
+      "channel": "총판",
+      "targetAmount": 117000000
+    },
+    {
+      "year": 2026,
+      "month": 8,
+      "businessUnit": "PRT",
+      "channel": "총판",
+      "targetAmount": 117000000
+    },
+    {
+      "year": 2026,
+      "month": 9,
+      "businessUnit": "PRT",
+      "channel": "총판",
+      "targetAmount": 140000000
+    },
+    {
+      "year": 2026,
+      "month": 10,
+      "businessUnit": "PRT",
+      "channel": "총판",
+      "targetAmount": 140000000
+    },
+    {
+      "year": 2026,
+      "month": 11,
+      "businessUnit": "PRT",
+      "channel": "총판",
+      "targetAmount": 140000000
+    },
+    {
+      "year": 2026,
+      "month": 12,
+      "businessUnit": "PRT",
+      "channel": "총판",
+      "targetAmount": 127000000
+    },
+    {
+      "year": 2026,
+      "month": 1,
+      "businessUnit": "PJT",
+      "channel": "직판",
+      "targetAmount": 52000000
+    },
+    {
+      "year": 2026,
+      "month": 2,
+      "businessUnit": "PJT",
+      "channel": "직판",
+      "targetAmount": 52000000
+    },
+    {
+      "year": 2026,
+      "month": 3,
+      "businessUnit": "PJT",
+      "channel": "직판",
+      "targetAmount": 68000000
+    },
+    {
+      "year": 2026,
+      "month": 4,
+      "businessUnit": "PJT",
+      "channel": "직판",
+      "targetAmount": 68000000
+    },
+    {
+      "year": 2026,
+      "month": 5,
+      "businessUnit": "PJT",
+      "channel": "직판",
+      "targetAmount": 75000000
+    },
+    {
+      "year": 2026,
+      "month": 6,
+      "businessUnit": "PJT",
+      "channel": "직판",
+      "targetAmount": 83000000
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "businessUnit": "PJT",
+      "channel": "직판",
+      "targetAmount": 75000000
+    },
+    {
+      "year": 2026,
+      "month": 8,
+      "businessUnit": "PJT",
+      "channel": "직판",
+      "targetAmount": 75000000
+    },
+    {
+      "year": 2026,
+      "month": 9,
+      "businessUnit": "PJT",
+      "channel": "직판",
+      "targetAmount": 90000000
+    },
+    {
+      "year": 2026,
+      "month": 10,
+      "businessUnit": "PJT",
+      "channel": "직판",
+      "targetAmount": 90000000
+    },
+    {
+      "year": 2026,
+      "month": 11,
+      "businessUnit": "PJT",
+      "channel": "직판",
+      "targetAmount": 90000000
+    },
+    {
+      "year": 2026,
+      "month": 12,
+      "businessUnit": "PJT",
+      "channel": "직판",
+      "targetAmount": 82000000
+    },
+    {
+      "year": 2026,
+      "month": 1,
+      "businessUnit": "PJT",
+      "channel": "총판",
+      "targetAmount": 41000000
+    },
+    {
+      "year": 2026,
+      "month": 2,
+      "businessUnit": "PJT",
+      "channel": "총판",
+      "targetAmount": 41000000
+    },
+    {
+      "year": 2026,
+      "month": 3,
+      "businessUnit": "PJT",
+      "channel": "총판",
+      "targetAmount": 52000000
+    },
+    {
+      "year": 2026,
+      "month": 4,
+      "businessUnit": "PJT",
+      "channel": "총판",
+      "targetAmount": 52000000
+    },
+    {
+      "year": 2026,
+      "month": 5,
+      "businessUnit": "PJT",
+      "channel": "총판",
+      "targetAmount": 58000000
+    },
+    {
+      "year": 2026,
+      "month": 6,
+      "businessUnit": "PJT",
+      "channel": "총판",
+      "targetAmount": 64000000
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "businessUnit": "PJT",
+      "channel": "총판",
+      "targetAmount": 58000000
+    },
+    {
+      "year": 2026,
+      "month": 8,
+      "businessUnit": "PJT",
+      "channel": "총판",
+      "targetAmount": 58000000
+    },
+    {
+      "year": 2026,
+      "month": 9,
+      "businessUnit": "PJT",
+      "channel": "총판",
+      "targetAmount": 70000000
+    },
+    {
+      "year": 2026,
+      "month": 10,
+      "businessUnit": "PJT",
+      "channel": "총판",
+      "targetAmount": 70000000
+    },
+    {
+      "year": 2026,
+      "month": 11,
+      "businessUnit": "PJT",
+      "channel": "총판",
+      "targetAmount": 70000000
+    },
+    {
+      "year": 2026,
+      "month": 12,
+      "businessUnit": "PJT",
+      "channel": "총판",
+      "targetAmount": 66000000
+    },
+    {
+      "year": 2026,
+      "month": 1,
+      "businessUnit": "RBT",
+      "channel": "직판",
+      "targetAmount": 64000000
+    },
+    {
+      "year": 2026,
+      "month": 2,
+      "businessUnit": "RBT",
+      "channel": "직판",
+      "targetAmount": 64000000
+    },
+    {
+      "year": 2026,
+      "month": 3,
+      "businessUnit": "RBT",
+      "channel": "직판",
+      "targetAmount": 82000000
+    },
+    {
+      "year": 2026,
+      "month": 4,
+      "businessUnit": "RBT",
+      "channel": "직판",
+      "targetAmount": 82000000
+    },
+    {
+      "year": 2026,
+      "month": 5,
+      "businessUnit": "RBT",
+      "channel": "직판",
+      "targetAmount": 92000000
+    },
+    {
+      "year": 2026,
+      "month": 6,
+      "businessUnit": "RBT",
+      "channel": "직판",
+      "targetAmount": 101000000
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "businessUnit": "RBT",
+      "channel": "직판",
+      "targetAmount": 92000000
+    },
+    {
+      "year": 2026,
+      "month": 8,
+      "businessUnit": "RBT",
+      "channel": "직판",
+      "targetAmount": 92000000
+    },
+    {
+      "year": 2026,
+      "month": 9,
+      "businessUnit": "RBT",
+      "channel": "직판",
+      "targetAmount": 110000000
+    },
+    {
+      "year": 2026,
+      "month": 10,
+      "businessUnit": "RBT",
+      "channel": "직판",
+      "targetAmount": 110000000
+    },
+    {
+      "year": 2026,
+      "month": 11,
+      "businessUnit": "RBT",
+      "channel": "직판",
+      "targetAmount": 110000000
+    },
+    {
+      "year": 2026,
+      "month": 12,
+      "businessUnit": "RBT",
+      "channel": "직판",
+      "targetAmount": 101000000
+    },
+    {
+      "year": 2026,
+      "month": 1,
+      "businessUnit": "RBT",
+      "channel": "총판",
+      "targetAmount": 12000000
+    },
+    {
+      "year": 2026,
+      "month": 2,
+      "businessUnit": "RBT",
+      "channel": "총판",
+      "targetAmount": 12000000
+    },
+    {
+      "year": 2026,
+      "month": 3,
+      "businessUnit": "RBT",
+      "channel": "총판",
+      "targetAmount": 15000000
+    },
+    {
+      "year": 2026,
+      "month": 4,
+      "businessUnit": "RBT",
+      "channel": "총판",
+      "targetAmount": 15000000
+    },
+    {
+      "year": 2026,
+      "month": 5,
+      "businessUnit": "RBT",
+      "channel": "총판",
+      "targetAmount": 17000000
+    },
+    {
+      "year": 2026,
+      "month": 6,
+      "businessUnit": "RBT",
+      "channel": "총판",
+      "targetAmount": 18000000
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "businessUnit": "RBT",
+      "channel": "총판",
+      "targetAmount": 17000000
+    },
+    {
+      "year": 2026,
+      "month": 8,
+      "businessUnit": "RBT",
+      "channel": "총판",
+      "targetAmount": 17000000
+    },
+    {
+      "year": 2026,
+      "month": 9,
+      "businessUnit": "RBT",
+      "channel": "총판",
+      "targetAmount": 20000000
+    },
+    {
+      "year": 2026,
+      "month": 10,
+      "businessUnit": "RBT",
+      "channel": "총판",
+      "targetAmount": 20000000
+    },
+    {
+      "year": 2026,
+      "month": 11,
+      "businessUnit": "RBT",
+      "channel": "총판",
+      "targetAmount": 20000000
+    },
+    {
+      "year": 2026,
+      "month": 12,
+      "businessUnit": "RBT",
+      "channel": "총판",
+      "targetAmount": 17000000
+    },
+    {
+      "year": 2026,
+      "month": 1,
+      "businessUnit": "CMP",
+      "channel": "직판",
+      "targetAmount": 47000000
+    },
+    {
+      "year": 2026,
+      "month": 2,
+      "businessUnit": "CMP",
+      "channel": "직판",
+      "targetAmount": 47000000
+    },
+    {
+      "year": 2026,
+      "month": 3,
+      "businessUnit": "CMP",
+      "channel": "직판",
+      "targetAmount": 60000000
+    },
+    {
+      "year": 2026,
+      "month": 4,
+      "businessUnit": "CMP",
+      "channel": "직판",
+      "targetAmount": 60000000
+    },
+    {
+      "year": 2026,
+      "month": 5,
+      "businessUnit": "CMP",
+      "channel": "직판",
+      "targetAmount": 67000000
+    },
+    {
+      "year": 2026,
+      "month": 6,
+      "businessUnit": "CMP",
+      "channel": "직판",
+      "targetAmount": 73000000
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "businessUnit": "CMP",
+      "channel": "직판",
+      "targetAmount": 67000000
+    },
+    {
+      "year": 2026,
+      "month": 8,
+      "businessUnit": "CMP",
+      "channel": "직판",
+      "targetAmount": 67000000
+    },
+    {
+      "year": 2026,
+      "month": 9,
+      "businessUnit": "CMP",
+      "channel": "직판",
+      "targetAmount": 80000000
+    },
+    {
+      "year": 2026,
+      "month": 10,
+      "businessUnit": "CMP",
+      "channel": "직판",
+      "targetAmount": 80000000
+    },
+    {
+      "year": 2026,
+      "month": 11,
+      "businessUnit": "CMP",
+      "channel": "직판",
+      "targetAmount": 80000000
+    },
+    {
+      "year": 2026,
+      "month": 12,
+      "businessUnit": "CMP",
+      "channel": "직판",
+      "targetAmount": 72000000
+    },
+    {
+      "year": 2026,
+      "month": 1,
+      "businessUnit": "CMP",
+      "channel": "총판",
+      "targetAmount": 6000000
+    },
+    {
+      "year": 2026,
+      "month": 2,
+      "businessUnit": "CMP",
+      "channel": "총판",
+      "targetAmount": 6000000
+    },
+    {
+      "year": 2026,
+      "month": 3,
+      "businessUnit": "CMP",
+      "channel": "총판",
+      "targetAmount": 8000000
+    },
+    {
+      "year": 2026,
+      "month": 4,
+      "businessUnit": "CMP",
+      "channel": "총판",
+      "targetAmount": 8000000
+    },
+    {
+      "year": 2026,
+      "month": 5,
+      "businessUnit": "CMP",
+      "channel": "총판",
+      "targetAmount": 8000000
+    },
+    {
+      "year": 2026,
+      "month": 6,
+      "businessUnit": "CMP",
+      "channel": "총판",
+      "targetAmount": 9000000
+    },
+    {
+      "year": 2026,
+      "month": 7,
+      "businessUnit": "CMP",
+      "channel": "총판",
+      "targetAmount": 8000000
+    },
+    {
+      "year": 2026,
+      "month": 8,
+      "businessUnit": "CMP",
+      "channel": "총판",
+      "targetAmount": 8000000
+    },
+    {
+      "year": 2026,
+      "month": 9,
+      "businessUnit": "CMP",
+      "channel": "총판",
+      "targetAmount": 10000000
+    },
+    {
+      "year": 2026,
+      "month": 10,
+      "businessUnit": "CMP",
+      "channel": "총판",
+      "targetAmount": 10000000
+    },
+    {
+      "year": 2026,
+      "month": 11,
+      "businessUnit": "CMP",
+      "channel": "총판",
+      "targetAmount": 10000000
+    },
+    {
+      "year": 2026,
+      "month": 12,
+      "businessUnit": "CMP",
+      "channel": "총판",
+      "targetAmount": 9000000
+    }
+  ]
+}

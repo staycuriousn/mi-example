@@ -1,0 +1,234 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-29T11:30:00Z",
+  "title": "Design System: Epson Korea MI Platform",
+  "extensions": {
+    "colorMeta": {
+      "epson-ink": {
+        "role": "primary",
+        "displayName": "Epson Ink",
+        "canonical": "#00339b",
+        "tonalRamp": [
+          "#001030",
+          "#001c56",
+          "#00277a",
+          "#00339b",
+          "#3d64c8",
+          "#8fa6e0",
+          "#dce4f7",
+          "#f2f5fc"
+        ]
+      },
+      "paper-white": {
+        "role": "neutral",
+        "displayName": "Paper White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#1a2233",
+          "#5a6478",
+          "#8b93a5",
+          "#b8bec9",
+          "#d9dee8",
+          "#eceff4",
+          "#f7f8fb",
+          "#ffffff"
+        ]
+      },
+      "achieved-green": {
+        "role": "status-good",
+        "displayName": "Achieved Green",
+        "canonical": "#0e7a55",
+        "tonalRamp": [
+          "#043d2b",
+          "#0a5c40",
+          "#0e7a55",
+          "#3d9974",
+          "#7dbba0",
+          "#b3d8c8",
+          "#e6f3ee",
+          "#f4faf7"
+        ]
+      },
+      "shortfall-rose": {
+        "role": "status-serious",
+        "displayName": "Shortfall Rose",
+        "canonical": "#b3264c",
+        "tonalRamp": [
+          "#4d0f20",
+          "#8a1d3a",
+          "#b3264c",
+          "#c95a77",
+          "#dc93a7",
+          "#ecc3cf",
+          "#f9e9ee",
+          "#fcf4f6"
+        ]
+      },
+      "scrim": {
+        "role": "overlay",
+        "displayName": "Ink Scrim",
+        "canonical": "rgba(10, 20, 50, 0.28)",
+        "tonalRamp": []
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "KPI Display",
+        "purpose": "KPI 카드 금액 전용, tabular-nums 필수."
+      },
+      "title": {
+        "displayName": "Section Title",
+        "purpose": "섹션 헤더 — 하단 2px 잉크 룰 동반."
+      },
+      "body-compact": {
+        "displayName": "Body Compact",
+        "purpose": "테이블 셀·버튼·입력 등 밀도가 필요한 데이터 UI(13px)."
+      },
+      "body-emphasis": {
+        "displayName": "Body Emphasis",
+        "purpose": "탭 라벨·KPI 단위(15px/600)."
+      },
+      "label-small": {
+        "displayName": "Label Small",
+        "purpose": "차트 축 tick 전용 최소 단계(11px)."
+      }
+    },
+    "shadows": [
+      {
+        "name": "float",
+        "value": "0 4px 16px rgba(0, 26, 86, 0.12)",
+        "purpose": "드로어·팝오버 전용. 카드·패널·테이블에는 그림자 금지."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-standard",
+        "value": "150ms ease-out",
+        "purpose": "호버·탭 전환·행 선택 기본."
+      },
+      {
+        "name": "drawer-slide",
+        "value": "220ms ease-out",
+        "purpose": "상세 패널 슬라이드."
+      },
+      {
+        "name": "chart-grow",
+        "value": "400ms",
+        "purpose": "차트 최초 렌더 성장 애니메이션."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "chart-narrow",
+        "value": "480px"
+      },
+      {
+        "name": "stack",
+        "value": "860px"
+      },
+      {
+        "name": "single-column",
+        "value": "1100px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "주 동작(Salesforce Export 등). 잉크 채움.",
+      "html": "<button class=\"ds-btn-primary\">⬇ Salesforce용 Export</button>",
+      "css": ".ds-btn-primary { background: #00339b; color: #fff; border: 1px solid #00339b; border-radius: 6px; padding: 8px 14px; font-size: 13px; font-weight: 600; transition: background 150ms ease-out; } .ds-btn-primary:hover { background: #001c56; border-color: #001c56; } .ds-btn-primary:focus-visible { outline: 2px solid #3d64c8; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "보조 동작(엑셀 업로드 등). 잉크 테두리.",
+      "html": "<button class=\"ds-btn-ghost\">⬆ 엑셀 업로드</button>",
+      "css": ".ds-btn-ghost { background: #fff; color: #00339b; border: 1px solid #00339b; border-radius: 6px; padding: 8px 14px; font-size: 13px; font-weight: 600; transition: background 150ms ease-out; } .ds-btn-ghost:hover { background: #f2f5fc; }"
+    },
+    {
+      "name": "KPI Card",
+      "kind": "card",
+      "refersTo": "kpi-card",
+      "description": "지표명 캡션 → 잉크 금액 → 달성률 메타. 그림자 없음.",
+      "html": "<div class=\"ds-kpi\"><div class=\"ds-kpi-cap\">계약 완료(수주)</div><div class=\"ds-kpi-val\">51.0<span class=\"ds-kpi-unit\">억</span></div><div class=\"ds-kpi-meta\">12건 · <span class=\"ds-kpi-rate\">▼ 달성률 80%</span></div></div>",
+      "css": ".ds-kpi { background: #fff; border: 1px solid #d9dee8; border-radius: 8px; padding: 16px; font-family: 'Pretendard Variable', Pretendard, sans-serif; } .ds-kpi-cap { font-size: 12px; line-height: 18px; color: #5a6478; } .ds-kpi-val { font-size: 32px; line-height: 40px; font-weight: 700; color: #00339b; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; margin-top: 4px; } .ds-kpi-unit { font-size: 15px; font-weight: 600; color: #5a6478; margin-left: 2px; letter-spacing: 0; } .ds-kpi-meta { margin-top: 8px; font-size: 12px; color: #5a6478; font-variant-numeric: tabular-nums; } .ds-kpi-rate { color: #b26a00; font-weight: 600; }"
+    },
+    {
+      "name": "Stage Tag",
+      "kind": "chip",
+      "refersTo": "tag-stage",
+      "description": "영업 단계 태그. 진행=잉크 워시, 수주=그린, 실주=로즈.",
+      "html": "<span class=\"ds-tag\">제안·견적</span> <span class=\"ds-tag ds-tag-won\">계약 완료(수주)</span> <span class=\"ds-tag ds-tag-lost\">실주(Lost)</span>",
+      "css": ".ds-tag { display: inline-flex; align-items: center; border-radius: 4px; padding: 2px 8px; font-size: 12px; line-height: 18px; font-weight: 600; background: #dce4f7; color: #001c56; } .ds-tag-won { background: #e6f3ee; color: #0e7a55; } .ds-tag-lost { background: #f9e9ee; color: #b3264c; }"
+    },
+    {
+      "name": "Pipeline Stage Cell",
+      "kind": "custom",
+      "description": "5단계 파이프라인의 클릭 가능 셀. 활성 시 잉크 채움. 셀 사이 › 잉크 셰브론.",
+      "html": "<button class=\"ds-stage\"><span class=\"ds-stage-name\">제안·견적</span><span class=\"ds-stage-val\">11.8억 <em>3건</em></span></button>",
+      "css": ".ds-stage { position: relative; border: 1px solid #d9dee8; border-radius: 8px; background: #f2f5fc; padding: 12px 14px; text-align: left; display: inline-flex; flex-direction: column; min-width: 160px; cursor: pointer; transition: background 150ms ease-out; font-family: inherit; } .ds-stage:hover { border-color: #8fa6e0; } .ds-stage-name { font-size: 12px; line-height: 18px; color: #5a6478; } .ds-stage-val { font-size: 16px; line-height: 24px; font-weight: 700; color: #00339b; font-variant-numeric: tabular-nums; } .ds-stage-val em { font-size: 12px; color: #5a6478; font-weight: 400; font-style: normal; margin-left: 4px; } .ds-stage::after { content: ''; position: absolute; right: -12px; top: 50%; width: 9px; height: 9px; border-top: 1.5px solid #8fa6e0; border-right: 1.5px solid #8fa6e0; transform: translateY(-50%) rotate(45deg); }"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "nav",
+      "description": "기간·차트 토글. 활성 칸 잉크 채움.",
+      "html": "<div class=\"ds-seg\"><button class=\"ds-seg-on\">연간</button><button>분기</button><button>월</button></div>",
+      "css": ".ds-seg { display: inline-flex; border: 1px solid #d9dee8; border-radius: 6px; overflow: hidden; } .ds-seg button { background: #fff; border: none; padding: 6px 12px; font-size: 13px; color: #5a6478; border-right: 1px solid #d9dee8; cursor: pointer; font-family: inherit; } .ds-seg button:last-child { border-right: none; } .ds-seg .ds-seg-on { background: #00339b; color: #fff; }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "description": "테이블 검색 필드.",
+      "html": "<input class=\"ds-input\" type=\"search\" placeholder=\"사업기회명·고객사·모델·담당 검색\" />",
+      "css": ".ds-input { border: 1px solid #d9dee8; border-radius: 6px; padding: 7px 10px; font-size: 13px; width: 260px; font-family: inherit; color: #1a2233; } .ds-input:focus-visible { outline: 2px solid #3d64c8; outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "흰 종이 위의 딥 블루 잉크 (Deep Blue Ink on White Paper)",
+    "overview": "정밀 인쇄 회사의 대시보드는 잉크의 논리를 따른다. 순백 종이 위에 Epson 딥 블루(#00339B)가 구조선·핵심 숫자·활성 상태를 그리고, 나머지는 여백과 1px 헤어라인이 감당한다. 회색 캔버스+그림자 카드의 BI 툴 문법과 Salesforce의 스카이블루 문법을 명시적으로 거부한다.",
+    "keyCharacteristics": [
+      "그림자 없는 흰 캔버스 — 구분은 1px 헤어라인과 여백이 한다",
+      "섹션 헤더마다 2px 잉크 룰",
+      "모든 수치는 tabular-nums, 금액은 억원 단위",
+      "상태는 색+아이콘/라벨 병행"
+    ],
+    "rules": [
+      {
+        "name": "The Ink-Only-Structure Rule",
+        "body": "색이 구조를 만들 때는 잉크 계열만 쓴다. 회색처럼 보이는 모든 면은 Ink Mist(#F2F5FC)다.",
+        "section": "colors"
+      },
+      {
+        "name": "The Never-Color-Alone Rule",
+        "body": "달성/미달·상태는 항상 색 + ▲▼ 아이콘 또는 텍스트 라벨 병행.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Number Rule",
+        "body": "수치 컬럼은 우측 정렬 + tabular-nums. 금액은 억원 소수 1자리.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-Paper Rule",
+        "body": "카드·패널·테이블에 그림자를 주지 않는다. 그림자가 필요해 보이면 여백이 부족한 것이다.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do 섹션 헤더마다 2px Epson Ink 룰을 긋는다",
+      "Do 모든 수치에 tabular-nums + 우측 정렬, 금액은 억원 표기",
+      "Do 상태 표현에 색 + 아이콘/라벨 병행",
+      "Do 차트 계열 색은 사업부 고정 매핑(순서 불변)"
+    ],
+    "donts": [
+      "Don't 회색 캔버스 + 흰 카드 + 그림자 조합 (카드 그림자 금지, 드로어·팝오버 예외)",
+      "Don't 스카이블루 그라데이션·일러스트(Salesforce), 순수 레드 강조(Canon), 시안 원형 모티프(HP)",
+      "Don't 도넛 중심 구성, 3D·그라데이션 차트, 듀얼 Y축, 이모지 아이콘, zebra 테이블",
+      "Don't #00339B를 차트 데이터 계열로 사용 (UI 잉크 전용, 차트는 #2E56C2)"
+    ]
+  }
+}
