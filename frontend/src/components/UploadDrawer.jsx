@@ -69,6 +69,8 @@ export default function UploadDrawer({ open, mode, preview, onClose, onApplied, 
   const [patches, setPatches] = useState({}) // opportunityId → 수정 patch
   const [editingId, setEditingId] = useState(null)
   const [dropIds, setDropIds] = useState([])
+  const [data, setData] = useState(null) // 서버 응답 (mapping 단계 → rows 단계로 교체됨)
+  const [colmap, setColmap] = useState({}) // 열 index → 대상 필드 key
 
   useEffect(() => {
     const h = e => { if (e.key === 'Escape') onClose() }
@@ -90,8 +92,32 @@ export default function UploadDrawer({ open, mode, preview, onClose, onApplied, 
       setPatches({})
       setEditingId(null)
       setDropIds([])
+      setData(preview ?? null)
+      if (preview?.step === 'mapping') {
+        setColmap(Object.fromEntries(preview.columns.map(c => [c.index, c.suggested ?? ''])))
+      }
     }
   }, [open, mode, preview?.batchId])
+
+  const confirmMap = async () => {
+    setBusy(true)
+    setError(null)
+    try {
+      const body = { colmap: Object.fromEntries(Object.entries(colmap).filter(([, v]) => v)) }
+      const res = await fetch(`/api/upload-map/${data.batchId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const next = await res.json()
+      if (!res.ok) throw new Error(next.detail ?? `HTTP ${res.status}`)
+      setData(next)
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setBusy(false)
+    }
+  }
 
   const apply = async () => {
     setBusy(true)
@@ -102,7 +128,7 @@ export default function UploadDrawer({ open, mode, preview, onClose, onApplied, 
         updates: upd.filter(u => patches[u.after.opportunityId]).map(u => ({ opportunityId: u.after.opportunityId, ...patches[u.after.opportunityId] })),
         dropIds,
       }
-      const res = await fetch(`/api/upload-apply/${preview.batchId}`, {
+      const res = await fetch(`/api/upload-apply/${data.batchId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(edits),
@@ -134,10 +160,10 @@ export default function UploadDrawer({ open, mode, preview, onClose, onApplied, 
     }
   }
 
-  const ins = preview?.opportunities?.inserts ?? []
-  const upd = preview?.opportunities?.updates ?? []
-  const plans = preview?.plan?.changes ?? []
-  const errs = preview?.errors ?? []
+  const ins = data?.opportunities?.inserts ?? []
+  const upd = data?.opportunities?.updates ?? []
+  const plans = data?.plan?.changes ?? []
+  const errs = data?.errors ?? []
   const activeCount = ins.length + upd.length - dropIds.length + plans.length
   const nothing = activeCount <= 0
 
@@ -187,8 +213,8 @@ export default function UploadDrawer({ open, mode, preview, onClose, onApplied, 
       <aside className={`drawer ${open ? 'open' : ''}`} role="dialog" aria-modal="true"
         aria-label={mode === 'preview' ? '업로드 미리보기' : '업로드 반영 히스토리'}>
         <div className="dhead">
-          <div className="oid">{mode === 'preview' ? `파일: ${preview?.filename ?? ''}` : '엑셀 업로드'}</div>
-          <h3>{mode === 'preview' ? '업로드 미리보기 — 확인·수정 후 반영' : '반영 히스토리'}</h3>
+          <div className="oid">{mode === 'preview' ? `파일: ${data?.filename ?? ''}` : '엑셀 업로드'}</div>
+          <h3>{mode === 'preview' ? (data?.step === 'mapping' ? '1단계 — 컬럼 매핑 확인' : '2단계 — 행 미리보기·수정 후 반영') : '반영 히스토리'}</h3>
           <button className="close" onClick={onClose} aria-label="닫기">✕</button>
         </div>
         <div className="dbody">
@@ -198,11 +224,46 @@ export default function UploadDrawer({ open, mode, preview, onClose, onApplied, 
             </div>
           )}
 
-          {mode === 'preview' && preview && (
+          {mode === 'preview' && data?.step === 'mapping' && (
             <>
-              {preview.fieldMode && (
+              <p className="upmeta" style={{ marginTop: 16 }}>
+                <b>{data.sheet}</b> 시트에서 아래 컬럼을 찾았습니다. 엑셀의 각 컬럼을 플랫폼(Salesforce 대응)
+                필드에 매핑해 주세요. 자동 제안이 틀리면 드롭다운으로 바꾸고, 불필요한 컬럼은 "매핑 안 함"으로 두면 됩니다.
+              </p>
+              <div className="dgroup">
+                {data.columns.map(c => (
+                  <div className="maprow" key={c.index}>
+                    <div>
+                      <div className="upname">{c.header}</div>
+                      <div className="upmeta">샘플: {c.samples.slice(0, 2).join(' · ') || '(비어 있음)'}</div>
+                    </div>
+                    <span className="maparrow" aria-hidden="true">→</span>
+                    <select value={colmap[c.index] ?? ''} onChange={e => setColmap(m => ({ ...m, [c.index]: e.target.value }))}>
+                      <option value="">(매핑 안 함)</option>
+                      {data.targetFields.map(f => (
+                        <option key={f.key} value={f.key}>
+                          {f.label}{f.required ? ' *' : ''} — SF: {f.sf}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+              </div>
+              <p className="upmeta">* 필수: 사업기회명 · 고객사명 · 예상 금액 · 단계</p>
+              <div className="dgroup" style={{ display: 'flex', gap: 12 }}>
+                <button className="btn btn-primary" onClick={confirmMap} disabled={busy}>
+                  {busy ? '해석 중…' : '이 매핑으로 미리보기'}
+                </button>
+                <button className="btn btn-ghost" onClick={onClose} disabled={busy}>취소</button>
+              </div>
+            </>
+          )}
+
+          {mode === 'preview' && data && data.step !== 'mapping' && (
+            <>
+              {data.fieldMode && (
                 <p className="upmeta" style={{ marginTop: 16 }}>
-                  표준 양식이 아닌 <b>영업관리 엑셀</b>로 인식하여 컬럼·단위·단계 용어를 자동 해석했습니다.
+                  확정한 컬럼 매핑으로 값(금액 단위·단계 용어·날짜)을 해석했습니다.
                   해석이 틀린 건은 [수정]으로 바로잡거나 [제외]한 뒤 반영해 주세요.
                 </p>
               )}

@@ -387,3 +387,12 @@ table.mini td.num-c { text-align: right; }
   padding: 6px 8px; font-size: 13px; color: var(--text);
 }
 @media (max-width: 480px) { .editgrid { grid-template-columns: 1fr 1fr; } }
+
+/* 컬럼 매핑 단계 */
+.maprow {
+  display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--line);
+}
+.maprow:last-child { border-bottom: none; }
+.maprow select { border: 1px solid var(--line); border-radius: 6px; padding: 7px 8px; font-size: 12px; width: 100%; background: #fff; }
+.maparrow { color: var(--ink-300); font-weight: 600; }
