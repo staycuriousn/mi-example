@@ -21,13 +21,20 @@ export default function EventFeed({ events, onPromote, updateEvent, onSelect, se
   const [cat, setCat] = useState('ALL') // B2B/B2G
   const [status, setStatus] = useState('ALL')
   const [minScore, setMinScore] = useState(0)
+  const [sortBy, setSortBy] = useState('score') // 'score' | 'newest' | 'oldest'
+
+  const SORTS = {
+    score: (a, b) => b.aiScore - a.aiScore || b.eventDate.localeCompare(a.eventDate),
+    newest: (a, b) => b.eventDate.localeCompare(a.eventDate) || b.aiScore - a.aiScore,
+    oldest: (a, b) => a.eventDate.localeCompare(b.eventDate) || b.aiScore - a.aiScore,
+  }
 
   const rows = useMemo(
     () =>
       events
         .filter(e => (cat === 'ALL' || e.category === cat) && (status === 'ALL' || e.status === status) && e.aiScore >= minScore)
-        .sort((a, b) => b.aiScore - a.aiScore || b.eventDate.localeCompare(a.eventDate)),
-    [events, cat, status, minScore]
+        .sort(SORTS[sortBy]),
+    [events, cat, status, minScore, sortBy]
   )
 
   return (
@@ -52,6 +59,12 @@ export default function EventFeed({ events, onPromote, updateEvent, onSelect, se
           <option value={0}>스코어 전체</option>
           <option value={3}>★3 이상</option>
           <option value={4}>★4 이상</option>
+        </select>
+        <select aria-label="정렬 기준" value={sortBy} onChange={e => setSortBy(e.target.value)}
+          style={{ border: '1px solid var(--line)', borderRadius: 6, padding: '6px 8px', fontSize: 13 }}>
+          <option value="score">AI 스코어순</option>
+          <option value="newest">최신 이벤트순</option>
+          <option value="oldest">오래된 이벤트순</option>
         </select>
         <span className="count num">{rows.length}건</span>
       </div>

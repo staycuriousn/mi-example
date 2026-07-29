@@ -318,7 +318,16 @@ table.opps td.name { max-width: 320px; overflow: hidden; text-overflow: ellipsis
   padding: 0 4px; margin-right: 6px; background: var(--ink-100); color: var(--ink-900);
 }
 .catmark.g { background: var(--ok-bg); color: var(--ok); }
-.tlaxis { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-sub); margin-top: 6px; }
+.tl .tlhead { position: relative; height: 34px; font-size: 11px; color: var(--text-sub); }
+.tl .tlhead .tlstart { position: absolute; left: 0; bottom: 2px; }
+.tl .tlhead .tlend { position: absolute; right: 0; bottom: 2px; }
+.tl .tlhead .tltodaylab {
+  position: absolute; top: 0; transform: translateX(-50%);
+  color: var(--ink); font-weight: 600; white-space: nowrap; text-align: center;
+}
+.tl .tlhead .tltodaylab i {
+  display: block; width: 2px; height: 10px; background: var(--ink); margin: 2px auto 0; border-radius: 1px;
+}
 
 table.mini { width: 100%; border-collapse: collapse; }
 table.mini th { font-size: 12px; font-weight: 600; color: var(--text-sub); text-align: left; padding: 8px 10px; border-bottom: 2px solid var(--ink); white-space: nowrap; }
