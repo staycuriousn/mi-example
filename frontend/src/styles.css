@@ -325,9 +325,6 @@ table.opps td.name { max-width: 320px; overflow: hidden; text-overflow: ellipsis
   position: absolute; top: 0; transform: translateX(-50%);
   color: var(--ink); font-weight: 600; white-space: nowrap; text-align: center;
 }
-.tl .tlhead .tltodaylab i {
-  display: block; width: 2px; height: 10px; background: var(--ink); margin: 2px auto 0; border-radius: 2px;
-}
 
 table.mini { width: 100%; border-collapse: collapse; }
 table.mini th { font-size: 12px; font-weight: 600; color: var(--text-sub); text-align: left; padding: 8px 10px; border-bottom: 2px solid var(--ink); white-space: nowrap; }

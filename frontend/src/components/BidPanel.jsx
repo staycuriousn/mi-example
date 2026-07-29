@@ -34,10 +34,7 @@ export function EventTimeline({ events, today, onSelect }) {
         <div className="tlhead num">
           <span className="tlstart">{new Date(min * 86400000).toISOString().slice(0, 10)}</span>
           <span className="tlend">{new Date(max * 86400000).toISOString().slice(0, 10)}</span>
-          <span className="tltodaylab" style={{ left: pct(t) }}>
-            기준일 {today}
-            <i />
-          </span>
+          <span className="tltodaylab" style={{ left: pct(t) }}>기준일 {today}</span>
         </div>
         {items.map(i => {
           const closed = i.isBid && i.end < t
