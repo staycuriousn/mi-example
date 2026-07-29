@@ -257,7 +257,9 @@ table.opps td.name { max-width: 320px; overflow: hidden; text-overflow: ellipsis
   border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; background: #fff;
   margin-bottom: 12px; transition: border-color 150ms ease-out;
 }
-.evcard:hover { border-color: var(--ink-300); }
+.evcard.clickable { cursor: pointer; }
+.evcard:hover { border-color: var(--ink-300); background: var(--ink-050); }
+.evcard.sel { border-color: var(--ink); background: var(--ink-050); }
 .evcard .evtop { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .evcard .evorg { font-size: 14px; font-weight: 600; }
 .evcard .evtrig { font-size: 12px; color: var(--ink); font-weight: 600; }

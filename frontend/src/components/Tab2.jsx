@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { monthsOf } from '../lib/aggregate.js'
 import { isWon } from '../lib/model.js'
 import EventFeed from './EventFeed.jsx'
+import EventDetailDrawer from './EventDetailDrawer.jsx'
 import PromoteDrawer from './PromoteDrawer.jsx'
 import { TriggerDist, PromoFunnel, TrendChart } from './SensingPanels.jsx'
 import { BidTimeline, CompetitorTable } from './BidPanel.jsx'
@@ -24,6 +25,7 @@ const Skeleton = () => (
 
 export default function Tab2({ data, error, retry, filters, updateEvent, addOpportunity }) {
   const [promoteTarget, setPromoteTarget] = useState(null)
+  const [selectedId, setSelectedId] = useState(null)
 
   const events = useMemo(() => {
     if (!data) return []
@@ -90,7 +92,13 @@ export default function Tab2({ data, error, retry, filters, updateEvent, addOppo
             센싱 이벤트 피드
             <span className="hint">AI 스코어순 · 승격 시 탭1 파이프라인(리드 발굴)에 추가됩니다</span>
           </h2>
-          <EventFeed events={events} onPromote={setPromoteTarget} updateEvent={updateEvent} />
+          <EventFeed
+            events={events}
+            onPromote={setPromoteTarget}
+            updateEvent={updateEvent}
+            onSelect={setSelectedId}
+            selectedId={selectedId}
+          />
         </div>
         <div style={{ display: 'grid', gap: 24 }}>
           <TriggerDist events={events} />
@@ -108,6 +116,15 @@ export default function Tab2({ data, error, retry, filters, updateEvent, addOppo
         <h2>경쟁사 낙찰 동향 <span className="hint">재입찰 전략 수립용</span></h2>
         <CompetitorTable bids={bids} />
       </section>
+
+      <EventDetailDrawer
+        event={promoteTarget ? null : data.events.find(e => e.eventId === selectedId) ?? null}
+        accounts={data.accounts}
+        opportunities={data.opportunities}
+        onClose={() => setSelectedId(null)}
+        onPromote={e => setPromoteTarget(e)}
+        updateEvent={updateEvent}
+      />
 
       <PromoteDrawer
         event={promoteTarget}

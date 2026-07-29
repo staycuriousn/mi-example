@@ -17,7 +17,7 @@ const fmtSize = ps => {
   return `${ps.value.toLocaleString()}${ps.unit}`
 }
 
-export default function EventFeed({ events, onPromote, updateEvent }) {
+export default function EventFeed({ events, onPromote, updateEvent, onSelect, selectedId }) {
   const [cat, setCat] = useState('ALL') // B2B/B2G
   const [status, setStatus] = useState('ALL')
   const [minScore, setMinScore] = useState(0)
@@ -65,7 +65,14 @@ export default function EventFeed({ events, onPromote, updateEvent }) {
         rows.map(e => {
           const actionable = e.status === '신규' || e.status === '검토중' || e.status === '보류'
           return (
-            <article key={e.eventId} className="evcard">
+            <article
+              key={e.eventId}
+              className={`evcard clickable ${selectedId === e.eventId ? 'sel' : ''}`}
+              onClick={() => onSelect(e.eventId)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={ev => { if (ev.key === 'Enter') onSelect(e.eventId) }}
+            >
               <div className="evtop">
                 <span className="evorg">{e.targetName}</span>
                 <span className="evtrig">{e.triggerType}</span>
@@ -82,7 +89,7 @@ export default function EventFeed({ events, onPromote, updateEvent }) {
                 {e.promotedOpportunityId && <span style={{ color: 'var(--ok)', fontWeight: 600 }}>→ {e.promotedOpportunityId}</span>}
               </div>
               {actionable && (
-                <div className="evact">
+                <div className="evact" onClick={ev => ev.stopPropagation()}>
                   <button className="btn btn-primary" onClick={() => onPromote(e)}>승격</button>
                   {e.status !== '보류' && (
                     <button className="btn btn-quiet" onClick={() => updateEvent(e.eventId, { status: '보류' })}>보류</button>
