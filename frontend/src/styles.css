@@ -84,9 +84,12 @@ input, select { font-family: inherit; }
 .seg button.on { background: var(--ink); color: #fff; }
 
 .btn {
-  border-radius: 6px; padding: 8px 14px; font-size: 13px; font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 37px; padding: 0 14px; border-radius: 6px;
+  font-size: 13px; font-weight: 600; line-height: 1; white-space: nowrap;
   transition: background 150ms ease-out, color 150ms ease-out;
 }
+.btn:disabled { opacity: 0.6; cursor: default; }
 .btn-primary { background: var(--ink); color: #fff; border: 1px solid var(--ink); }
 .btn-primary:hover { background: var(--ink-900); border-color: var(--ink-900); }
 .btn-ghost { background: #fff; color: var(--ink); border: 1px solid var(--ink); }
@@ -382,6 +385,7 @@ table.mini td.num-c { text-align: right; }
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin-top: 12px;
 }
+.histrow > div:last-child, .histrow > .btn { flex-shrink: 0; }
 
 /* 미리보기 행 인라인 편집기 */
 .editgrid {
