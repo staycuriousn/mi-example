@@ -159,6 +159,120 @@ def _header_map(ws, col_def):
     return {idx: col_def[h] for idx, h in enumerate(headers) if h in col_def}
 
 
+
+# ── 현업 자유양식 엑셀 매핑 (컬럼 유사어·단위·단계 용어·날짜 표기 해석) ──
+FIELD_HEADER_SYNONYMS = {
+    "name": ["건명", "사업명", "안건", "내용", "프로젝트", "사업기회명"],
+    "accountName": ["업체명", "업체", "거래처", "거래처명", "고객사", "고객사명", "고객명", "기관명"],
+    "productModel": ["품목/모델", "품목", "모델", "제품", "제품명", "장비"],
+    "quantity": ["수량", "대수", "예상 수량"],
+    "amount": ["예상금액", "금액", "예상 금액", "수주예상액", "규모", "예상금액(백만원)", "금액(백만)", "예상 금액(원)"],
+    "stage": ["진행상태", "상태", "진행", "단계", "진행단계", "진척"],
+    "closeDate": ["수주예정", "수주예정일", "납기", "예정일", "수주시기", "예상 수주일"],
+    "owner": ["담당", "담당자", "영업담당", "담당 영업"],
+    "description": ["비고", "메모", "특이사항", "코멘트"],
+}
+
+STAGE_SYNONYMS = [
+    (["리드", "발굴", "신규", "타겟"], "리드 발굴"),
+    (["상담", "니즈", "미팅", "접촉"], "니즈 파악·상담"),
+    (["견적", "제안", "입찰준비"], "제안·견적"),
+    (["데모", "demo", "poc", "테스트", "실증", "시연"], "Demo·PoC/테스트"),
+    (["협상", "계약대기", "계약검토", "품의"], "협상·계약검토"),
+    (["수주", "계약완료", "계약 완료", "낙찰"], "계약 완료(수주)"),
+    (["납품완료", "검수", "매출", "완료"], "매출 인식"),
+    (["실주", "취소", "드랍", "lost"], "실주(Lost)"),
+]
+
+BU_KEYWORDS = [
+    # 명시적 프린터 키워드를 먼저 확인 (모델명 부분 문자열 오탐 방지: WF-C879R의 'c8' 등)
+    (["복합기", "프린터", "잉크젯", "라벨", "영수증", "mps", "wf-", "tm-", "am-", "cw-"], "PRT"),
+    (["프로젝터", "eb-", "빔"], "PJT"),
+    (["로봇", "scara", "6축", "gx8", "gx4", "c8xl", "c12xl"], "RBT"),
+    (["분말", "헤드", "코어", "precisioncore", "atmix"], "CMP"),
+]
+
+
+def _map_stage(raw):
+    s = str(raw).strip().lower()
+    for keys, stage in STAGE_SYNONYMS:
+        if any(k in s for k in keys):
+            return stage
+    return None
+
+
+def _guess_bu(text):
+    s = str(text).lower()
+    for keys, bu in BU_KEYWORDS:
+        if any(k in s for k in keys):
+            return bu
+    return "PRT"
+
+
+def _parse_field_amount(v, header=""):
+    """'0.9억' / '45,000,000' / 270(백만원 표기·소액 숫자) 등 현업 금액 표기를 원 단위로."""
+    if v in (None, ""):
+        raise ValueError("금액 누락")
+    if isinstance(v, (int, float)):
+        n = float(v)
+        if "억" in header:
+            return int(n * 1e8), None
+        if "백만" in header or n < 100000:
+            return int(n * 1e6), "금액을 백만원 단위로 해석"
+        return int(n), None
+    s = str(v).replace(",", "").replace(" ", "").replace("원", "")
+    if s.endswith("억"):
+        return int(float(s[:-1]) * 1e8), f"'{v}' → 억 단위 해석"
+    if s.endswith("백만"):
+        return int(float(s[:-2]) * 1e6), f"'{v}' → 백만원 단위 해석"
+    if s.endswith("천만"):
+        return int(float(s[:-2]) * 1e7), f"'{v}' → 천만원 단위 해석"
+    n = float(s)
+    if n < 100000:
+        return int(n * 1e6), "금액을 백만원 단위로 해석"
+    return int(n), None
+
+
+def _parse_field_date(v):
+    """'2026.10.31' / '12/15' / '11월말' / date 셀 등 → YYYY-MM-DD."""
+    import calendar
+    if v in (None, ""):
+        return None, None
+    if isinstance(v, (datetime, date)):
+        return v.strftime("%Y-%m-%d"), None
+    s = str(v).strip().replace(".", "-").replace("/", "-")
+    m = re.fullmatch(r"(\d{4})-(\d{1,2})-(\d{1,2})", s)
+    if m:
+        y, mo, d = map(int, m.groups())
+        return f"{y:04d}-{mo:02d}-{d:02d}", None
+    m = re.fullmatch(r"(\d{1,2})-(\d{1,2})", s)
+    if m:
+        mo, d = map(int, m.groups())
+        return f"2026-{mo:02d}-{d:02d}", f"'{v}' → 2026년으로 해석"
+    m = re.fullmatch(r"(\d{1,2})월\s*(말|초|중순)?", str(v).strip())
+    if m:
+        mo = int(m.group(1))
+        part = m.group(2) or "말"
+        d = {"초": 5, "중순": 15}.get(part, calendar.monthrange(2026, mo)[1])
+        return f"2026-{mo:02d}-{d:02d}", f"'{v}' → 2026-{mo:02d}-{d:02d}로 해석"
+    raise ValueError(f"날짜 해석 불가: {v}")
+
+
+def _find_field_sheet(wb):
+    """유사 컬럼명이 3개 이상 잡히는 헤더 행을 가진 시트를 찾는다 (제목행 허용, 1~5행 탐색)."""
+    for ws in wb.worksheets:
+        for hr in range(1, min(6, ws.max_row + 1)):
+            headers = [str(c.value).strip() if c.value is not None else "" for c in ws[hr]]
+            colmap = {}
+            for idx, h in enumerate(headers):
+                for key, names in FIELD_HEADER_SYNONYMS.items():
+                    if h in names and key not in colmap:
+                        colmap[idx] = key
+            if len(colmap) >= 3 and "name" in colmap.values():
+                return ws, hr, colmap
+    return None, None, None
+
+
 STAGING = {}         # batchId → 미리보기(미반영) 배치
 UPLOAD_HISTORY = []  # 반영된 배치 (롤백용 undo 스냅샷 포함)
 
@@ -256,7 +370,102 @@ def _parse_workbook(wb, filename):
                 preview["errors"].append({"sheet": "판매계획", "row": r, "message": str(e)})
 
     if "사업기회" not in wb.sheetnames and "판매계획" not in wb.sheetnames:
-        raise HTTPException(status_code=422, detail="'사업기회' 또는 '판매계획' 시트가 필요합니다 (양식: sales_pipeline_template.xlsx)")
+        # 표준 양식이 아니면 현업 자유양식으로 해석 시도
+        ws, hr, colmap = _find_field_sheet(wb)
+        if ws is None:
+            raise HTTPException(
+                status_code=422,
+                detail="해석 가능한 시트를 찾지 못했습니다. 표준 양식(사업기회/판매계획 시트) 또는 업체명·건명·금액·진행상태 컬럼이 있는 영업관리 엑셀을 올려주세요.",
+            )
+        accounts_list = STORE["accounts"]["accounts"]
+
+        def _match_account(raw):
+            """정확일치 → 괄호 제거 일치 → 포함 관계 순으로 계정을 찾는다."""
+            n = raw.strip()
+            strip_paren = lambda s: re.sub(r"\(.*?\)", "", s).strip()
+            for a in accounts_list:
+                if a["accountName"] == n:
+                    return a
+            for a in accounts_list:
+                if strip_paren(a["accountName"]) == strip_paren(n):
+                    return a
+            for a in accounts_list:
+                if n and (n in a["accountName"] or strip_paren(a["accountName"]) in n):
+                    return a
+            return None
+
+        staged_new = 0
+        for r, row in enumerate(ws.iter_rows(min_row=hr + 1), start=hr + 1):
+            vals = {colmap[i]: c.value for i, c in enumerate(row) if i in colmap}
+            if not any(v not in (None, "") for v in vals.values()):
+                continue
+            try:
+                name = str(vals.get("name") or "").strip()
+                acct = str(vals.get("accountName") or "").strip()
+                if not name or not acct:
+                    raise ValueError("건명·업체명은 필수입니다")
+                notes = []
+                header_txt = " ".join(str(c.value) for c in ws[hr] if c.value)
+                amount, note = _parse_field_amount(vals.get("amount"), header_txt)
+                if note:
+                    notes.append(note)
+                stage_raw = vals.get("stage")
+                stage = _map_stage(stage_raw) if stage_raw not in (None, "") else None
+                if stage is None:
+                    raise ValueError(f"진행상태 해석 불가: {stage_raw} (예: 견적, 상담중, 데모 예정, 수주)")
+                if str(stage_raw).strip() != stage:
+                    notes.append(f"단계 '{stage_raw}' → {stage}")
+                close, note = _parse_field_date(vals.get("closeDate"))
+                if note:
+                    notes.append(note)
+                if close is None:
+                    close = "2026-12-31"
+                    notes.append("수주예정 미기재 → 2026-12-31로 가정")
+                model = str(vals.get("productModel") or "").strip()
+                account = _match_account(acct)
+                bu = _guess_bu(f"{model} {name}")
+                notes.append(f"사업부 {bu} 추정 (품목 기반)")
+                channel = account["channel"] if account else "직판"
+                if account:
+                    notes.append(f"기존 계정 매칭({account['accountId']}) → 채널 {channel}")
+                else:
+                    notes.append("신규 업체 → 채널 직판 가정")
+                qty = vals.get("quantity")
+                rec = {
+                    **{v: None for v in OPP_COLS.values()},
+                    "name": f"{acct} {name}" if acct not in name else name,
+                    "businessUnit": bu,
+                    "channel": channel,
+                    "customerSegment": account.get("customerSegment") if account else "B2B기업",
+                    "productModel": model or None,
+                    "productFamily": None,
+                    "quantity": int(qty) if qty not in (None, "") else None,
+                    "amount": amount,
+                    "stage": stage,
+                    "probability": STAGE_PROB.get(stage, 0),
+                    "closeDate": close,
+                    "owner": str(vals.get("owner") or "").strip() or None,
+                    "description": str(vals.get("description") or "").strip() or None,
+                    "leadSource": "엑셀 업로드",
+                    "accountId": account["accountId"] if account else None,
+                    "sensingEventId": None,
+                }
+                rec.pop("accountName", None)
+                existing = next(
+                    (o for o in STORE["opportunities"]["opportunities"] if o["name"] == rec["name"]), None
+                )
+                if existing:
+                    after = {**existing, **{k: v for k, v in rec.items() if v is not None and k != "opportunityId"}}
+                    preview["opportunities"]["updates"].append({"before": dict(existing), "after": after, "mapNotes": notes})
+                else:
+                    staged_new += 1
+                    base = int(_next_opp_id(STORE["opportunities"]["opportunities"]).rsplit("-", 1)[1])
+                    rec["opportunityId"] = f"OPP-2026-{base + staged_new - 1:04d}"
+                    rec["mapNotes"] = notes
+                    preview["opportunities"]["inserts"].append(rec)
+            except (ValueError, TypeError) as e:
+                preview["errors"].append({"sheet": ws.title, "row": r, "message": str(e)})
+        preview["fieldMode"] = True
     return preview
 
 
@@ -286,6 +495,7 @@ def upload_apply(batch_id: str):
     plan_rows = STORE["sales_plan"]["monthlyPlan"]
 
     for rec in batch["opportunities"]["inserts"]:
+        rec = {k: v for k, v in rec.items() if k != "mapNotes"}
         if not any(o["opportunityId"] == rec["opportunityId"] for o in opps):
             opps.append(rec)
     for u in batch["opportunities"]["updates"]:

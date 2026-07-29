@@ -86,16 +86,30 @@ export default function UploadDrawer({ open, mode, preview, onClose, onApplied, 
 
           {mode === 'preview' && preview && (
             <>
+              {preview.fieldMode && (
+                <p className="upmeta" style={{ marginTop: 16 }}>
+                  표준 양식이 아닌 <b>영업관리 엑셀</b>로 인식하여 컬럼·단위·단계 용어를 자동 해석했습니다.
+                  각 건의 해석 내용을 확인한 뒤 반영해 주세요.
+                </p>
+              )}
+
               {ins.length > 0 && (
                 <div className="dgroup">
                   <h4>신규 등록 {ins.length}건</h4>
                   {ins.map(r => (
-                    <div className="uprow" key={r.opportunityId}>
-                      <span className="tag">신규</span>
-                      <span className="upname">{r.name}</span>
-                      <span className="upmeta num">
-                        {buName(r.businessUnit)} · {r.channel} · {fmtEok(r.amount)}억 · {r.stage}
-                      </span>
+                    <div className="uprow" key={r.opportunityId} style={{ display: 'block' }}>
+                      <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' }}>
+                        <span className="tag">신규</span>
+                        <span className="upname">{r.name}</span>
+                        <span className="upmeta num">
+                          {buName(r.businessUnit)} · {r.channel} · {fmtEok(r.amount)}억 · {r.stage}
+                        </span>
+                      </div>
+                      {r.mapNotes?.length > 0 && (
+                        <div className="upmeta" style={{ marginTop: 2, color: 'var(--ink-500)' }}>
+                          ↳ 해석: {r.mapNotes.join(' · ')}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
