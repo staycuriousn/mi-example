@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import UploadDrawer from './UploadDrawer.jsx'
 
 const Popover = ({ title, children, onClose }) => {
   const ref = useRef(null)
@@ -16,9 +17,11 @@ const Popover = ({ title, children, onClose }) => {
 }
 
 export default function Header({ tab, setTab, filters, setFilters, owners, reload }) {
-  const [pop, setPop] = useState(null) // 'upload-result' | null
-  const [uploadResult, setUploadResult] = useState(null)
+  const [pop, setPop] = useState(null) // 'upload-fail' | 'apply-done' | null
+  const [failMsg, setFailMsg] = useState(null)
+  const [applied, setApplied] = useState(null)
   const [uploading, setUploading] = useState(false)
+  const [drawer, setDrawer] = useState(null) // { mode: 'preview'|'history', preview? }
   const fileRef = useRef(null)
   const set = patch => setFilters(f => ({ ...f, ...patch }))
 
@@ -34,13 +37,12 @@ export default function Header({ tab, setTab, filters, setFilters, owners, reloa
       const res = await fetch('/api/upload-excel', { method: 'POST', body: fd })
       const body = await res.json()
       if (!res.ok) throw new Error(body.detail ?? `HTTP ${res.status}`)
-      setUploadResult({ ok: true, ...body })
-      reload()
+      setDrawer({ mode: 'preview', preview: body }) // 반영 전 미리보기
     } catch (err) {
-      setUploadResult({ ok: false, message: err.message })
+      setFailMsg(err.message)
+      setPop('upload-fail')
     } finally {
       setUploading(false)
-      setPop('upload-result')
     }
   }
 
@@ -135,37 +137,41 @@ export default function Header({ tab, setTab, filters, setFilters, owners, reloa
             <button className="btn btn-ghost" onClick={() => fileRef.current?.click()} disabled={uploading}>
               {uploading ? '업로드 중…' : '⬆ 엑셀 업로드'}
             </button>
-            {pop === 'upload-result' && uploadResult && (
-              <Popover title={uploadResult.ok ? '업로드 완료' : '업로드 실패'} onClose={() => setPop(null)}>
-                {uploadResult.ok ? (
-                  <>
-                    사업기회 신규 {uploadResult.opportunities.inserted}건 · 갱신 {uploadResult.opportunities.updated}건
-                    {uploadResult.plan.updated > 0 && <> · 판매계획 {uploadResult.plan.updated}행</>}
-                    {uploadResult.errors.length > 0 && (
-                      <>
-                        <br />
-                        <span style={{ color: 'var(--risk)', fontWeight: 600 }}>오류 {uploadResult.errors.length}건 (미반영):</span>
-                        {uploadResult.errors.slice(0, 5).map((er, i) => (
-                          <div key={i}>· [{er.sheet} {er.row}행] {er.message}</div>
-                        ))}
-                        {uploadResult.errors.length > 5 && <div>… 외 {uploadResult.errors.length - 5}건</div>}
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    {uploadResult.message}
-                    <br />양식: excel/sales_pipeline_template.xlsx
-                  </>
-                )}
+            {pop === 'upload-fail' && failMsg && (
+              <Popover title="업로드 실패" onClose={() => setPop(null)}>
+                {failMsg}
+                <br />양식: excel/sales_pipeline_template.xlsx
+              </Popover>
+            )}
+            {pop === 'apply-done' && applied && (
+              <Popover title="반영 완료" onClose={() => setPop(null)}>
+                신규 {applied.counts.inserted}건 · 갱신 {applied.counts.updated}건 · 계획 {applied.counts.plan}행이
+                반영되었습니다. [히스토리]에서 되돌릴 수 있습니다.
               </Popover>
             )}
           </div>
+          <button className="btn btn-ghost" onClick={() => setDrawer({ mode: 'history' })}>
+            히스토리
+          </button>
           <a className="btn btn-primary" href={exportUrl} download style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
             ⬇ Salesforce용 Export
           </a>
         </div>
       </div>
+
+      <UploadDrawer
+        open={Boolean(drawer)}
+        mode={drawer?.mode}
+        preview={drawer?.preview}
+        onClose={() => setDrawer(null)}
+        onApplied={result => {
+          setDrawer(null)
+          setApplied(result)
+          setPop('apply-done')
+          reload()
+        }}
+        onRolledBack={reload}
+      />
     </header>
   )
 }

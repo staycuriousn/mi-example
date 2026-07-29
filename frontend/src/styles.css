@@ -361,3 +361,17 @@ table.mini td.num-c { text-align: right; }
   .tablebar input[type='search'] { width: 100%; }
   .tablebar { flex-wrap: wrap; }
 }
+
+/* ── 업로드 미리보기·히스토리 드로어 ─────────────────── */
+.uprow {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px;
+  padding: 8px 0; border-bottom: 1px solid var(--line); font-size: 13px;
+}
+.uprow:last-child { border-bottom: none; }
+.upname { font-weight: 600; color: var(--text); }
+.upmeta { font-size: 12px; color: var(--text-sub); }
+.upmeta b { color: var(--ink); }
+.histrow {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin-top: 12px;
+}

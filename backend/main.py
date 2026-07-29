@@ -159,27 +159,30 @@ def _header_map(ws, col_def):
     return {idx: col_def[h] for idx, h in enumerate(headers) if h in col_def}
 
 
-@app.post("/api/upload-excel")
-async def upload_excel(file: UploadFile):
-    from openpyxl import load_workbook
+STAGING = {}         # batchId → 미리보기(미반영) 배치
+UPLOAD_HISTORY = []  # 반영된 배치 (롤백용 undo 스냅샷 포함)
 
-    if not file.filename.lower().endswith(".xlsx"):
-        raise HTTPException(status_code=422, detail="xlsx 파일만 업로드할 수 있습니다")
-    try:
-        wb = load_workbook(io.BytesIO(await file.read()), data_only=True)
-    except Exception:
-        raise HTTPException(status_code=422, detail="엑셀 파일을 열 수 없습니다 (양식: sales_pipeline_template.xlsx)")
 
-    result = {"opportunities": {"inserted": 0, "updated": 0}, "plan": {"updated": 0}, "errors": []}
+def _parse_workbook(wb, filename):
+    """엑셀을 파싱·검증만 하고 변경 예정 내역(미리보기)을 만든다. 스토어는 건드리지 않는다."""
+    import uuid
+
+    preview = {
+        "batchId": uuid.uuid4().hex[:12],
+        "filename": filename,
+        "opportunities": {"inserts": [], "updates": []},
+        "plan": {"changes": []},
+        "errors": [],
+    }
     opps = STORE["opportunities"]["opportunities"]
     acc_by_name = {a["accountName"]: a["accountId"] for a in STORE["accounts"]["accounts"]}
+    staged_new = 0
 
-    # 시트1: 사업기회
     if "사업기회" in wb.sheetnames:
         ws = wb["사업기회"]
         hmap = _header_map(ws, OPP_COLS)
         if "name" not in hmap.values():
-            result["errors"].append({"sheet": "사업기회", "row": 1, "message": "헤더가 양식과 다릅니다 (입력가이드 시트 참조)"})
+            preview["errors"].append({"sheet": "사업기회", "row": 1, "message": "헤더가 양식과 다릅니다 (입력가이드 시트 참조)"})
         else:
             for r, row in enumerate(ws.iter_rows(min_row=2), start=2):
                 vals = {hmap[i]: c.value for i, c in enumerate(row) if i in hmap}
@@ -212,16 +215,19 @@ async def upload_excel(file: UploadFile):
                     oid = str(vals.get("opportunityId") or "").strip()
                     existing = next((o for o in opps if o["opportunityId"] == oid), None) if oid else None
                     if existing:
-                        existing.update({k: v for k, v in rec.items() if k != "opportunityId"})
-                        result["opportunities"]["updated"] += 1
+                        after = {**existing, **{k: v for k, v in rec.items() if k != "opportunityId"}}
+                        preview["opportunities"]["updates"].append({"before": dict(existing), "after": after})
                     else:
-                        rec["opportunityId"] = oid or _next_opp_id(opps)
-                        opps.append(rec)
-                        result["opportunities"]["inserted"] += 1
+                        if not oid:
+                            # 미리보기 단계에서 확정 채번: 기존 최대 번호 + 이 배치 내 신규 순번
+                            staged_new += 1
+                            base = int(_next_opp_id(opps).rsplit("-", 1)[1])
+                            oid = f"OPP-2026-{base + staged_new - 1:04d}"
+                        rec["opportunityId"] = oid
+                        preview["opportunities"]["inserts"].append(rec)
                 except (ValueError, TypeError) as e:
-                    result["errors"].append({"sheet": "사업기회", "row": r, "message": str(e)})
+                    preview["errors"].append({"sheet": "사업기회", "row": r, "message": str(e)})
 
-    # 시트2: 판매계획 (연도+월+사업부+채널 키로 목표금액 갱신)
     if "판매계획" in wb.sheetnames:
         ws = wb["판매계획"]
         hmap = _header_map(ws, PLAN_COLS)
@@ -240,17 +246,122 @@ async def upload_excel(file: UploadFile):
                     (p for p in plan_rows if p["year"] == y and p["month"] == m and p["businessUnit"] == bu and p["channel"] == ch),
                     None,
                 )
-                if target:
-                    target["targetAmount"] = amt
-                else:
-                    plan_rows.append({"year": y, "month": m, "businessUnit": bu, "channel": ch, "targetAmount": amt})
-                result["plan"]["updated"] += 1
+                before = target["targetAmount"] if target else None
+                if before == amt:
+                    continue  # 변경 없음
+                preview["plan"]["changes"].append(
+                    {"year": y, "month": m, "businessUnit": bu, "channel": ch, "before": before, "after": amt}
+                )
             except (ValueError, TypeError, KeyError) as e:
-                result["errors"].append({"sheet": "판매계획", "row": r, "message": str(e)})
+                preview["errors"].append({"sheet": "판매계획", "row": r, "message": str(e)})
 
     if "사업기회" not in wb.sheetnames and "판매계획" not in wb.sheetnames:
         raise HTTPException(status_code=422, detail="'사업기회' 또는 '판매계획' 시트가 필요합니다 (양식: sales_pipeline_template.xlsx)")
-    return result
+    return preview
+
+
+@app.post("/api/upload-excel")
+async def upload_excel(file: UploadFile):
+    """1단계: 파싱·검증 후 미리보기 반환. [반영]을 눌러야 실제 적용된다."""
+    from openpyxl import load_workbook
+
+    if not file.filename.lower().endswith(".xlsx"):
+        raise HTTPException(status_code=422, detail="xlsx 파일만 업로드할 수 있습니다")
+    try:
+        wb = load_workbook(io.BytesIO(await file.read()), data_only=True)
+    except Exception:
+        raise HTTPException(status_code=422, detail="엑셀 파일을 열 수 없습니다 (양식: sales_pipeline_template.xlsx)")
+    preview = _parse_workbook(wb, file.filename)
+    STAGING[preview["batchId"]] = preview
+    return preview
+
+
+@app.post("/api/upload-apply/{batch_id}")
+def upload_apply(batch_id: str):
+    """2단계: 스테이징된 배치를 스토어에 반영하고 히스토리에 기록한다."""
+    batch = STAGING.pop(batch_id, None)
+    if not batch:
+        raise HTTPException(status_code=404, detail="배치를 찾을 수 없습니다 (이미 반영됐거나 만료)")
+    opps = STORE["opportunities"]["opportunities"]
+    plan_rows = STORE["sales_plan"]["monthlyPlan"]
+
+    for rec in batch["opportunities"]["inserts"]:
+        if not any(o["opportunityId"] == rec["opportunityId"] for o in opps):
+            opps.append(rec)
+    for u in batch["opportunities"]["updates"]:
+        target = next((o for o in opps if o["opportunityId"] == u["after"]["opportunityId"]), None)
+        if target:
+            target.clear()
+            target.update(u["after"])
+    for c in batch["plan"]["changes"]:
+        target = next(
+            (p for p in plan_rows if p["year"] == c["year"] and p["month"] == c["month"]
+             and p["businessUnit"] == c["businessUnit"] and p["channel"] == c["channel"]),
+            None,
+        )
+        if target:
+            target["targetAmount"] = c["after"]
+        else:
+            plan_rows.append({"year": c["year"], "month": c["month"], "businessUnit": c["businessUnit"],
+                              "channel": c["channel"], "targetAmount": c["after"]})
+
+    entry = {
+        "batchId": batch["batchId"],
+        "filename": batch["filename"],
+        "appliedAt": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "counts": {
+            "inserted": len(batch["opportunities"]["inserts"]),
+            "updated": len(batch["opportunities"]["updates"]),
+            "plan": len(batch["plan"]["changes"]),
+        },
+        "undo": {
+            "insertedIds": [r["opportunityId"] for r in batch["opportunities"]["inserts"]],
+            "updateSnapshots": [u["before"] for u in batch["opportunities"]["updates"]],
+            "planChanges": batch["plan"]["changes"],
+        },
+    }
+    UPLOAD_HISTORY.append(entry)
+    return {"batchId": entry["batchId"], "counts": entry["counts"], "appliedAt": entry["appliedAt"]}
+
+
+@app.get("/api/upload-history")
+def upload_history():
+    return [{k: e[k] for k in ("batchId", "filename", "appliedAt", "counts")} for e in reversed(UPLOAD_HISTORY)]
+
+
+@app.delete("/api/upload-history/{batch_id}")
+def upload_rollback(batch_id: str):
+    """반영 제거(롤백): 신규 건 삭제, 갱신 건 이전 상태 복원, 계획 이전 금액 복원."""
+    entry = next((e for e in UPLOAD_HISTORY if e["batchId"] == batch_id), None)
+    if not entry:
+        raise HTTPException(status_code=404, detail="히스토리에 없는 배치입니다")
+    opps = STORE["opportunities"]["opportunities"]
+    plan_rows = STORE["sales_plan"]["monthlyPlan"]
+    undo = entry["undo"]
+
+    STORE["opportunities"]["opportunities"] = [
+        o for o in opps if o["opportunityId"] not in set(undo["insertedIds"])
+    ]
+    opps = STORE["opportunities"]["opportunities"]
+    for snap in undo["updateSnapshots"]:
+        target = next((o for o in opps if o["opportunityId"] == snap["opportunityId"]), None)
+        if target:
+            target.clear()
+            target.update(snap)
+    for c in undo["planChanges"]:
+        target = next(
+            (p for p in plan_rows if p["year"] == c["year"] and p["month"] == c["month"]
+             and p["businessUnit"] == c["businessUnit"] and p["channel"] == c["channel"]),
+            None,
+        )
+        if target:
+            if c["before"] is None:
+                plan_rows.remove(target)
+            else:
+                target["targetAmount"] = c["before"]
+
+    UPLOAD_HISTORY.remove(entry)
+    return {"removed": batch_id, "counts": entry["counts"]}
 
 
 # ── Salesforce Data Loader 포맷 Export ────────────────────────
