@@ -159,27 +159,144 @@ def _header_map(ws, col_def):
     return {idx: col_def[h] for idx, h in enumerate(headers) if h in col_def}
 
 
-@app.post("/api/upload-excel")
-async def upload_excel(file: UploadFile):
-    from openpyxl import load_workbook
 
-    if not file.filename.lower().endswith(".xlsx"):
-        raise HTTPException(status_code=422, detail="xlsx 파일만 업로드할 수 있습니다")
-    try:
-        wb = load_workbook(io.BytesIO(await file.read()), data_only=True)
-    except Exception:
-        raise HTTPException(status_code=422, detail="엑셀 파일을 열 수 없습니다 (양식: sales_pipeline_template.xlsx)")
+# ── 현업 자유양식 엑셀 매핑 (컬럼 유사어·단위·단계 용어·날짜 표기 해석) ──
+FIELD_HEADER_SYNONYMS = {
+    "name": ["건명", "사업명", "안건", "내용", "프로젝트", "사업기회명"],
+    "accountName": ["업체명", "업체", "거래처", "거래처명", "고객사", "고객사명", "고객명", "기관명"],
+    "productModel": ["품목/모델", "품목", "모델", "제품", "제품명", "장비"],
+    "quantity": ["수량", "대수", "예상 수량"],
+    "amount": ["예상금액", "금액", "예상 금액", "수주예상액", "규모", "예상금액(백만원)", "금액(백만)", "예상 금액(원)"],
+    "stage": ["진행상태", "상태", "진행", "단계", "진행단계", "진척"],
+    "closeDate": ["수주예정", "수주예정일", "납기", "예정일", "수주시기", "예상 수주일"],
+    "owner": ["담당", "담당자", "영업담당", "담당 영업"],
+    "description": ["비고", "메모", "특이사항", "코멘트"],
+}
 
-    result = {"opportunities": {"inserted": 0, "updated": 0}, "plan": {"updated": 0}, "errors": []}
+STAGE_SYNONYMS = [
+    (["리드", "발굴", "신규", "타겟"], "리드 발굴"),
+    (["상담", "니즈", "미팅", "접촉"], "니즈 파악·상담"),
+    (["견적", "제안", "입찰준비"], "제안·견적"),
+    (["데모", "demo", "poc", "테스트", "실증", "시연"], "Demo·PoC/테스트"),
+    (["협상", "계약대기", "계약검토", "품의"], "협상·계약검토"),
+    (["수주", "계약완료", "계약 완료", "낙찰"], "계약 완료(수주)"),
+    (["납품완료", "검수", "매출", "완료"], "매출 인식"),
+    (["실주", "취소", "드랍", "lost"], "실주(Lost)"),
+]
+
+BU_KEYWORDS = [
+    # 명시적 프린터 키워드를 먼저 확인 (모델명 부분 문자열 오탐 방지: WF-C879R의 'c8' 등)
+    (["복합기", "프린터", "잉크젯", "라벨", "영수증", "mps", "wf-", "tm-", "am-", "cw-"], "PRT"),
+    (["프로젝터", "eb-", "빔"], "PJT"),
+    (["로봇", "scara", "6축", "gx8", "gx4", "c8xl", "c12xl"], "RBT"),
+    (["분말", "헤드", "코어", "precisioncore", "atmix"], "CMP"),
+]
+
+
+def _map_stage(raw):
+    s = str(raw).strip().lower()
+    for keys, stage in STAGE_SYNONYMS:
+        if any(k in s for k in keys):
+            return stage
+    return None
+
+
+def _guess_bu(text):
+    s = str(text).lower()
+    for keys, bu in BU_KEYWORDS:
+        if any(k in s for k in keys):
+            return bu
+    return "PRT"
+
+
+def _parse_field_amount(v, header=""):
+    """'0.9억' / '45,000,000' / 270(백만원 표기·소액 숫자) 등 현업 금액 표기를 원 단위로."""
+    if v in (None, ""):
+        raise ValueError("금액 누락")
+    if isinstance(v, (int, float)):
+        n = float(v)
+        if "억" in header:
+            return int(n * 1e8), None
+        if "백만" in header or n < 100000:
+            return int(n * 1e6), "금액을 백만원 단위로 해석"
+        return int(n), None
+    s = str(v).replace(",", "").replace(" ", "").replace("원", "")
+    if s.endswith("억"):
+        return int(float(s[:-1]) * 1e8), f"'{v}' → 억 단위 해석"
+    if s.endswith("백만"):
+        return int(float(s[:-2]) * 1e6), f"'{v}' → 백만원 단위 해석"
+    if s.endswith("천만"):
+        return int(float(s[:-2]) * 1e7), f"'{v}' → 천만원 단위 해석"
+    n = float(s)
+    if n < 100000:
+        return int(n * 1e6), "금액을 백만원 단위로 해석"
+    return int(n), None
+
+
+def _parse_field_date(v):
+    """'2026.10.31' / '12/15' / '11월말' / date 셀 등 → YYYY-MM-DD."""
+    import calendar
+    if v in (None, ""):
+        return None, None
+    if isinstance(v, (datetime, date)):
+        return v.strftime("%Y-%m-%d"), None
+    s = str(v).strip().replace(".", "-").replace("/", "-")
+    m = re.fullmatch(r"(\d{4})-(\d{1,2})-(\d{1,2})", s)
+    if m:
+        y, mo, d = map(int, m.groups())
+        return f"{y:04d}-{mo:02d}-{d:02d}", None
+    m = re.fullmatch(r"(\d{1,2})-(\d{1,2})", s)
+    if m:
+        mo, d = map(int, m.groups())
+        return f"2026-{mo:02d}-{d:02d}", f"'{v}' → 2026년으로 해석"
+    m = re.fullmatch(r"(\d{1,2})월\s*(말|초|중순)?", str(v).strip())
+    if m:
+        mo = int(m.group(1))
+        part = m.group(2) or "말"
+        d = {"초": 5, "중순": 15}.get(part, calendar.monthrange(2026, mo)[1])
+        return f"2026-{mo:02d}-{d:02d}", f"'{v}' → 2026-{mo:02d}-{d:02d}로 해석"
+    raise ValueError(f"날짜 해석 불가: {v}")
+
+
+def _find_field_sheet(wb):
+    """유사 컬럼명이 3개 이상 잡히는 헤더 행을 가진 시트를 찾는다 (제목행 허용, 1~5행 탐색)."""
+    for ws in wb.worksheets:
+        for hr in range(1, min(6, ws.max_row + 1)):
+            headers = [str(c.value).strip() if c.value is not None else "" for c in ws[hr]]
+            colmap = {}
+            for idx, h in enumerate(headers):
+                for key, names in FIELD_HEADER_SYNONYMS.items():
+                    if h in names and key not in colmap:
+                        colmap[idx] = key
+            if len(colmap) >= 3 and "name" in colmap.values():
+                return ws, hr, colmap
+    return None, None, None
+
+
+STAGING = {}         # batchId → 미리보기(미반영) 배치
+UPLOAD_HISTORY = []  # 반영된 배치 (롤백용 undo 스냅샷 포함)
+
+
+def _parse_workbook(wb, filename):
+    """엑셀을 파싱·검증만 하고 변경 예정 내역(미리보기)을 만든다. 스토어는 건드리지 않는다."""
+    import uuid
+
+    preview = {
+        "batchId": uuid.uuid4().hex[:12],
+        "filename": filename,
+        "opportunities": {"inserts": [], "updates": []},
+        "plan": {"changes": []},
+        "errors": [],
+    }
     opps = STORE["opportunities"]["opportunities"]
     acc_by_name = {a["accountName"]: a["accountId"] for a in STORE["accounts"]["accounts"]}
+    staged_new = 0
 
-    # 시트1: 사업기회
     if "사업기회" in wb.sheetnames:
         ws = wb["사업기회"]
         hmap = _header_map(ws, OPP_COLS)
         if "name" not in hmap.values():
-            result["errors"].append({"sheet": "사업기회", "row": 1, "message": "헤더가 양식과 다릅니다 (입력가이드 시트 참조)"})
+            preview["errors"].append({"sheet": "사업기회", "row": 1, "message": "헤더가 양식과 다릅니다 (입력가이드 시트 참조)"})
         else:
             for r, row in enumerate(ws.iter_rows(min_row=2), start=2):
                 vals = {hmap[i]: c.value for i, c in enumerate(row) if i in hmap}
@@ -212,16 +329,19 @@ async def upload_excel(file: UploadFile):
                     oid = str(vals.get("opportunityId") or "").strip()
                     existing = next((o for o in opps if o["opportunityId"] == oid), None) if oid else None
                     if existing:
-                        existing.update({k: v for k, v in rec.items() if k != "opportunityId"})
-                        result["opportunities"]["updated"] += 1
+                        after = {**existing, **{k: v for k, v in rec.items() if k != "opportunityId"}}
+                        preview["opportunities"]["updates"].append({"before": dict(existing), "after": after})
                     else:
-                        rec["opportunityId"] = oid or _next_opp_id(opps)
-                        opps.append(rec)
-                        result["opportunities"]["inserted"] += 1
+                        if not oid:
+                            # 미리보기 단계에서 확정 채번: 기존 최대 번호 + 이 배치 내 신규 순번
+                            staged_new += 1
+                            base = int(_next_opp_id(opps).rsplit("-", 1)[1])
+                            oid = f"OPP-2026-{base + staged_new - 1:04d}"
+                        rec["opportunityId"] = oid
+                        preview["opportunities"]["inserts"].append(rec)
                 except (ValueError, TypeError) as e:
-                    result["errors"].append({"sheet": "사업기회", "row": r, "message": str(e)})
+                    preview["errors"].append({"sheet": "사업기회", "row": r, "message": str(e)})
 
-    # 시트2: 판매계획 (연도+월+사업부+채널 키로 목표금액 갱신)
     if "판매계획" in wb.sheetnames:
         ws = wb["판매계획"]
         hmap = _header_map(ws, PLAN_COLS)
@@ -240,17 +360,361 @@ async def upload_excel(file: UploadFile):
                     (p for p in plan_rows if p["year"] == y and p["month"] == m and p["businessUnit"] == bu and p["channel"] == ch),
                     None,
                 )
-                if target:
-                    target["targetAmount"] = amt
-                else:
-                    plan_rows.append({"year": y, "month": m, "businessUnit": bu, "channel": ch, "targetAmount": amt})
-                result["plan"]["updated"] += 1
+                before = target["targetAmount"] if target else None
+                if before == amt:
+                    continue  # 변경 없음
+                preview["plan"]["changes"].append(
+                    {"year": y, "month": m, "businessUnit": bu, "channel": ch, "before": before, "after": amt}
+                )
             except (ValueError, TypeError, KeyError) as e:
-                result["errors"].append({"sheet": "판매계획", "row": r, "message": str(e)})
+                preview["errors"].append({"sheet": "판매계획", "row": r, "message": str(e)})
 
-    if "사업기회" not in wb.sheetnames and "판매계획" not in wb.sheetnames:
-        raise HTTPException(status_code=422, detail="'사업기회' 또는 '판매계획' 시트가 필요합니다 (양식: sales_pipeline_template.xlsx)")
-    return result
+    return preview
+
+
+def _strip_paren(s):
+    return re.sub(r"\(.*?\)", "", s).strip()
+
+
+def _parse_field_rows(grid, colmap, header_row, batch_id, filename):
+    """확정된 컬럼 매핑으로 자유양식 행들을 표준 레코드로 해석한다."""
+    preview = {
+        "batchId": batch_id,
+        "filename": filename,
+        "opportunities": {"inserts": [], "updates": []},
+        "plan": {"changes": []},
+        "errors": [],
+        "fieldMode": True,
+    }
+    accounts_list = STORE["accounts"]["accounts"]
+
+    def _match_account(raw):
+        n = raw.strip()
+        for a in accounts_list:
+            if a["accountName"] == n:
+                return a
+        for a in accounts_list:
+            if _strip_paren(a["accountName"]) == _strip_paren(n):
+                return a
+        for a in accounts_list:
+            if n and (n in a["accountName"] or _strip_paren(a["accountName"]) in n):
+                return a
+        return None
+
+    header_txt = " ".join(header_row)
+    staged_new = 0
+    for r, row in enumerate(grid, start=2):
+        vals = {key: (row[i] if i < len(row) else None) for i, key in colmap.items()}
+        if not any(v not in (None, "") for v in vals.values()):
+            continue
+        try:
+            name = str(vals.get("name") or "").strip()
+            acct = str(vals.get("accountName") or "").strip()
+            if not name or not acct:
+                raise ValueError("건명·업체명은 필수입니다")
+            notes = []
+            amount, note = _parse_field_amount(vals.get("amount"), header_txt)
+            if note:
+                notes.append(note)
+            stage_raw = vals.get("stage")
+            stage = _map_stage(stage_raw) if stage_raw not in (None, "") else None
+            if stage is None:
+                raise ValueError(f"진행상태 해석 불가: {stage_raw} (예: 견적, 상담중, 데모 예정, 수주)")
+            if str(stage_raw).strip() != stage:
+                notes.append(f"단계 '{stage_raw}' → {stage}")
+            close, note = _parse_field_date(vals.get("closeDate"))
+            if note:
+                notes.append(note)
+            if close is None:
+                close = "2026-12-31"
+                notes.append("수주예정 미기재 → 2026-12-31로 가정")
+            model = str(vals.get("productModel") or "").strip()
+            account = _match_account(acct)
+            bu = _guess_bu(f"{model} {name}")
+            notes.append(f"사업부 {bu} 추정 (품목 기반)")
+            desc_txt = str(vals.get("description") or "")
+            partner = None
+            if "총판" in desc_txt or "총판" in name:
+                channel = "총판"
+                pm = re.search(r"총판\s*\(([^)]+)\)", desc_txt)
+                if pm:
+                    partner = pm.group(1).strip()
+                notes.append(f"비고의 '총판' 언급 → 채널 총판{f' (파트너 {partner})' if partner else ''}")
+            elif account:
+                channel = account["channel"]
+                notes.append(f"기존 계정 매칭({account['accountId']}) → 채널 {channel}")
+            else:
+                channel = "직판"
+                notes.append("신규 업체 → 채널 직판 가정")
+            qty = vals.get("quantity")
+            rec = {
+                **{v: None for v in OPP_COLS.values()},
+                "name": f"{acct} {name}" if acct not in name else name,
+                "businessUnit": bu,
+                "channel": channel,
+                "partnerAccount": partner,
+                "customerSegment": account.get("customerSegment") if account else "B2B기업",
+                "productModel": model or None,
+                "productFamily": None,
+                "quantity": int(qty) if qty not in (None, "") else None,
+                "amount": amount,
+                "stage": stage,
+                "probability": STAGE_PROB.get(stage, 0),
+                "closeDate": close,
+                "owner": str(vals.get("owner") or "").strip() or None,
+                "description": desc_txt.strip() or None,
+                "leadSource": "엑셀 업로드",
+                "accountId": account["accountId"] if account else None,
+                "sensingEventId": None,
+            }
+            rec.pop("accountName", None)
+            existing = next(
+                (o for o in STORE["opportunities"]["opportunities"] if o["name"] == rec["name"]), None
+            )
+            if existing:
+                after = {**existing, **{k: v for k, v in rec.items() if v is not None and k != "opportunityId"}}
+                preview["opportunities"]["updates"].append({"before": dict(existing), "after": after, "mapNotes": notes})
+            else:
+                staged_new += 1
+                base = int(_next_opp_id(STORE["opportunities"]["opportunities"]).rsplit("-", 1)[1])
+                rec["opportunityId"] = f"OPP-2026-{base + staged_new - 1:04d}"
+                rec["mapNotes"] = notes
+                preview["opportunities"]["inserts"].append(rec)
+        except (ValueError, TypeError) as e:
+            preview["errors"].append({"sheet": "업로드 시트", "row": r, "message": str(e)})
+    return preview
+
+
+# 자유양식 컬럼 매핑 대상 필드 (셀포 필드 대응 관계 포함)
+TARGET_FIELDS = [
+    {"key": "name", "label": "사업기회명", "sf": "Name", "required": True},
+    {"key": "accountName", "label": "고객사명", "sf": "AccountId(이름→ID 매칭)", "required": True},
+    {"key": "productModel", "label": "대표 모델/품목", "sf": "ProductModel__c", "required": False},
+    {"key": "quantity", "label": "예상 수량", "sf": "Quantity__c", "required": False},
+    {"key": "amount", "label": "예상 금액", "sf": "Amount", "required": True},
+    {"key": "stage", "label": "단계(진행상태)", "sf": "StageName", "required": True},
+    {"key": "closeDate", "label": "예상 수주일", "sf": "CloseDate", "required": False},
+    {"key": "owner", "label": "담당 영업", "sf": "OwnerId(이름→ID 매칭)", "required": False},
+    {"key": "description", "label": "비고", "sf": "Description", "required": False},
+]
+
+
+def _column_proposal(ws, hr, auto_colmap):
+    """자유양식 시트의 컬럼 목록 + 자동 매핑 제안 + 샘플 값 3개."""
+    cols = []
+    for idx, cell in enumerate(ws[hr]):
+        header = str(cell.value).strip() if cell.value is not None else ""
+        if not header:
+            continue
+        samples = []
+        for row in ws.iter_rows(min_row=hr + 1, max_row=min(hr + 8, ws.max_row)):
+            v = row[idx].value if idx < len(row) else None
+            if v not in (None, ""):
+                s = v.strftime("%Y-%m-%d") if isinstance(v, (datetime, date)) else str(v)
+                samples.append(s)
+            if len(samples) >= 3:
+                break
+        cols.append({"index": idx, "header": header, "samples": samples, "suggested": auto_colmap.get(idx)})
+    return cols
+
+
+@app.post("/api/upload-excel")
+async def upload_excel(file: UploadFile):
+    """1단계: 양식 감지. 표준 양식은 바로 행 미리보기, 자유양식은 컬럼 매핑 제안을 반환한다."""
+    import uuid
+    from openpyxl import load_workbook
+
+    if not file.filename.lower().endswith(".xlsx"):
+        raise HTTPException(status_code=422, detail="xlsx 파일만 업로드할 수 있습니다")
+    try:
+        wb = load_workbook(io.BytesIO(await file.read()), data_only=True)
+    except Exception:
+        raise HTTPException(status_code=422, detail="엑셀 파일을 열 수 없습니다 (양식: sales_pipeline_template.xlsx)")
+
+    if "사업기회" in wb.sheetnames or "판매계획" in wb.sheetnames:
+        preview = _parse_workbook(wb, file.filename)
+        preview["step"] = "rows"
+        STAGING[preview["batchId"]] = preview
+        return preview
+
+    ws, hr, auto_colmap = _find_field_sheet(wb)
+    if ws is None:
+        raise HTTPException(
+            status_code=422,
+            detail="해석 가능한 시트를 찾지 못했습니다. 표준 양식(사업기회/판매계획 시트) 또는 업체명·건명·금액·진행상태 컬럼이 있는 영업관리 엑셀을 올려주세요.",
+        )
+    batch_id = uuid.uuid4().hex[:12]
+    # 셀 값 그리드를 보관해 매핑 확정 시 재파싱한다
+    grid = [[c.value for c in row] for row in ws.iter_rows(min_row=hr + 1)]
+    STAGING[batch_id] = {
+        "batchId": batch_id,
+        "filename": file.filename,
+        "sheet": ws.title,
+        "headerRow": [str(c.value).strip() if c.value is not None else "" for c in ws[hr]],
+        "grid": grid,
+        "step": "mapping",
+    }
+    return {
+        "batchId": batch_id,
+        "step": "mapping",
+        "filename": file.filename,
+        "sheet": ws.title,
+        "columns": _column_proposal(ws, hr, auto_colmap),
+        "targetFields": TARGET_FIELDS,
+    }
+
+
+@app.post("/api/upload-map/{batch_id}")
+def upload_map(batch_id: str, body: dict):
+    """2단계: 사용자가 확정한 컬럼 매핑(colmap: {열index: 필드key})으로 행을 파싱해 미리보기를 만든다."""
+    staged = STAGING.get(batch_id)
+    if not staged or staged.get("step") != "mapping":
+        raise HTTPException(status_code=404, detail="매핑 대기 중인 배치가 없습니다 (다시 업로드해 주세요)")
+    raw_map = body.get("colmap") or {}
+    colmap = {}
+    valid_keys = {f["key"] for f in TARGET_FIELDS}
+    for k, v in raw_map.items():
+        if v in valid_keys:
+            colmap[int(k)] = v
+    mapped = set(colmap.values())
+    missing = [f["label"] for f in TARGET_FIELDS if f["required"] and f["key"] not in mapped]
+    if missing:
+        raise HTTPException(status_code=422, detail=f"필수 필드가 매핑되지 않았습니다: {', '.join(missing)}")
+
+    preview = _parse_field_rows(
+        staged["grid"], colmap, staged["headerRow"], batch_id, staged["filename"]
+    )
+    preview["step"] = "rows"
+    preview["sheet"] = staged["sheet"]
+    STAGING[batch_id] = preview
+    return preview
+
+
+EDITABLE_FIELDS = {
+    "name", "businessUnit", "channel", "partnerAccount", "stage", "probability",
+    "amount", "closeDate", "owner", "quantity", "productModel", "description",
+}
+
+
+def _apply_edits(batch, edits):
+    """미리보기 화면에서 사용자가 직접 수정한 값을 스테이징 배치에 덮어쓴다."""
+    def merge(target, patch):
+        for k, v in patch.items():
+            if k not in EDITABLE_FIELDS:
+                continue
+            if k == "businessUnit" and v not in BUS:
+                raise HTTPException(status_code=422, detail=f"사업부 코드 오류: {v}")
+            if k == "channel" and v not in CHANNELS:
+                raise HTTPException(status_code=422, detail=f"채널 오류: {v}")
+            if k == "stage" and v not in STAGE_PROB and v != "실주(Lost)":
+                raise HTTPException(status_code=422, detail=f"단계 오류: {v}")
+            target[k] = v
+        if "stage" in patch and "probability" not in patch:
+            target["probability"] = STAGE_PROB.get(patch["stage"], 0)
+
+    for e in edits.get("inserts", []):
+        rec = next((r for r in batch["opportunities"]["inserts"] if r["opportunityId"] == e.get("opportunityId")), None)
+        if rec:
+            merge(rec, e)
+    for e in edits.get("updates", []):
+        u = next((u for u in batch["opportunities"]["updates"] if u["after"]["opportunityId"] == e.get("opportunityId")), None)
+        if u:
+            merge(u["after"], e)
+    dropped = set(edits.get("dropIds", []))
+    if dropped:
+        batch["opportunities"]["inserts"] = [r for r in batch["opportunities"]["inserts"] if r["opportunityId"] not in dropped]
+        batch["opportunities"]["updates"] = [u for u in batch["opportunities"]["updates"] if u["after"]["opportunityId"] not in dropped]
+
+
+@app.post("/api/upload-apply/{batch_id}")
+def upload_apply(batch_id: str, edits: dict | None = None):
+    """2단계: 스테이징된 배치를 (사용자 수정분 반영 후) 스토어에 적용하고 히스토리에 기록한다."""
+    batch = STAGING.pop(batch_id, None)
+    if not batch:
+        raise HTTPException(status_code=404, detail="배치를 찾을 수 없습니다 (이미 반영됐거나 만료)")
+    if edits:
+        _apply_edits(batch, edits)
+    opps = STORE["opportunities"]["opportunities"]
+    plan_rows = STORE["sales_plan"]["monthlyPlan"]
+
+    for rec in batch["opportunities"]["inserts"]:
+        rec = {k: v for k, v in rec.items() if k != "mapNotes"}
+        if not any(o["opportunityId"] == rec["opportunityId"] for o in opps):
+            opps.append(rec)
+    for u in batch["opportunities"]["updates"]:
+        target = next((o for o in opps if o["opportunityId"] == u["after"]["opportunityId"]), None)
+        if target:
+            target.clear()
+            target.update(u["after"])
+    for c in batch["plan"]["changes"]:
+        target = next(
+            (p for p in plan_rows if p["year"] == c["year"] and p["month"] == c["month"]
+             and p["businessUnit"] == c["businessUnit"] and p["channel"] == c["channel"]),
+            None,
+        )
+        if target:
+            target["targetAmount"] = c["after"]
+        else:
+            plan_rows.append({"year": c["year"], "month": c["month"], "businessUnit": c["businessUnit"],
+                              "channel": c["channel"], "targetAmount": c["after"]})
+
+    entry = {
+        "batchId": batch["batchId"],
+        "filename": batch["filename"],
+        "appliedAt": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "counts": {
+            "inserted": len(batch["opportunities"]["inserts"]),
+            "updated": len(batch["opportunities"]["updates"]),
+            "plan": len(batch["plan"]["changes"]),
+        },
+        "undo": {
+            "insertedIds": [r["opportunityId"] for r in batch["opportunities"]["inserts"]],
+            "updateSnapshots": [u["before"] for u in batch["opportunities"]["updates"]],
+            "planChanges": batch["plan"]["changes"],
+        },
+    }
+    UPLOAD_HISTORY.append(entry)
+    return {"batchId": entry["batchId"], "counts": entry["counts"], "appliedAt": entry["appliedAt"]}
+
+
+@app.get("/api/upload-history")
+def upload_history():
+    return [{k: e[k] for k in ("batchId", "filename", "appliedAt", "counts")} for e in reversed(UPLOAD_HISTORY)]
+
+
+@app.delete("/api/upload-history/{batch_id}")
+def upload_rollback(batch_id: str):
+    """반영 제거(롤백): 신규 건 삭제, 갱신 건 이전 상태 복원, 계획 이전 금액 복원."""
+    entry = next((e for e in UPLOAD_HISTORY if e["batchId"] == batch_id), None)
+    if not entry:
+        raise HTTPException(status_code=404, detail="히스토리에 없는 배치입니다")
+    opps = STORE["opportunities"]["opportunities"]
+    plan_rows = STORE["sales_plan"]["monthlyPlan"]
+    undo = entry["undo"]
+
+    STORE["opportunities"]["opportunities"] = [
+        o for o in opps if o["opportunityId"] not in set(undo["insertedIds"])
+    ]
+    opps = STORE["opportunities"]["opportunities"]
+    for snap in undo["updateSnapshots"]:
+        target = next((o for o in opps if o["opportunityId"] == snap["opportunityId"]), None)
+        if target:
+            target.clear()
+            target.update(snap)
+    for c in undo["planChanges"]:
+        target = next(
+            (p for p in plan_rows if p["year"] == c["year"] and p["month"] == c["month"]
+             and p["businessUnit"] == c["businessUnit"] and p["channel"] == c["channel"]),
+            None,
+        )
+        if target:
+            if c["before"] is None:
+                plan_rows.remove(target)
+            else:
+                target["targetAmount"] = c["before"]
+
+    UPLOAD_HISTORY.remove(entry)
+    return {"removed": batch_id, "counts": entry["counts"]}
 
 
 # ── Salesforce Data Loader 포맷 Export ────────────────────────

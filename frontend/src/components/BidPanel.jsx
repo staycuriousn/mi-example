@@ -29,6 +29,13 @@ export function EventTimeline({ events, today, onSelect }) {
   return (
     <div className="panel">
       <div className="tl">
+        {/* 축 헤더: 시작/종료 일자는 트랙 양 끝, 기준일 라벨은 기준선 바로 위 */}
+        <div className="tlname" aria-hidden="true" />
+        <div className="tlhead num">
+          <span className="tlstart">{new Date(min * 86400000).toISOString().slice(0, 10)}</span>
+          <span className="tlend">{new Date(max * 86400000).toISOString().slice(0, 10)}</span>
+          <span className="tltodaylab" style={{ left: pct(t) }}>기준일 {today}</span>
+        </div>
         {items.map(i => {
           const closed = i.isBid && i.end < t
           const urgent = i.isBid && !closed && i.end - t <= 7
@@ -60,12 +67,7 @@ export function EventTimeline({ events, today, onSelect }) {
           )
         })}
       </div>
-      <div className="tlaxis num">
-        <span>{new Date(min * 86400000).toISOString().slice(0, 10)}</span>
-        <span>│ 기준일 {today}</span>
-        <span>{new Date(max * 86400000).toISOString().slice(0, 10)}</span>
-      </div>
-      <div className="legend" style={{ marginTop: 8 }}>
+      <div className="legend" style={{ marginTop: 12 }}>
         <span className="li"><span className="swatch" style={{ background: 'var(--ink-300)' }} /> B2G 입찰 공고→마감</span>
         <span className="li"><span className="swatch" style={{ background: 'var(--warn-bg)', border: '1px solid var(--warn)' }} /> 마감 임박(D-7)</span>
         <span className="li"><span className="swatch" style={{ background: 'var(--ink)', width: 8, height: 8, borderRadius: '50%' }} /> B2B 이벤트 발생 시점</span>
