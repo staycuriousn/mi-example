@@ -45,7 +45,6 @@ STORE = {
     "accounts": _load("accounts"),
     "sales_plan": _load("sales_plan"),
     "sensing_events": _load("sensing_events"),
-    "search_trends": _load("search_trends"),
 }
 
 BUS = {"PRT", "PJT", "RBT", "CMP"}
@@ -71,11 +70,6 @@ def sales_plan():
 @app.get("/api/sensing-events")
 def sensing_events():
     return STORE["sensing_events"]
-
-
-@app.get("/api/search-trends")
-def search_trends():
-    return STORE["search_trends"]
 
 
 @app.get("/api/health")

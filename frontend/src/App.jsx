@@ -31,15 +31,14 @@ export default function App() {
       fetchJson('/api/sales-plan'),
       fetchJson('/api/accounts'),
       fetchJson('/api/sensing-events'),
-      fetchJson('/api/search-trends'),
     ])
-      .then(([opp, plan, acc, evt, trends]) => {
+      .then(([opp, plan, acc, evt]) => {
         const nameById = Object.fromEntries(acc.accounts.map(a => [a.accountId, a.accountName]))
         const opportunities = opp.opportunities.map(o => ({
           ...o,
           accountName: nameById[o.accountId] ?? o.accountId,
         }))
-        setData({ opportunities, plan, accounts: acc.accounts, events: evt.events, trends })
+        setData({ opportunities, plan, accounts: acc.accounts, events: evt.events })
       })
       .catch(e => setError(e.message))
   }

@@ -11,7 +11,7 @@ Salesforce 데이터 + 외부 공개 데이터를 연계한 **실적 모니터�
 | `data/sample/opportunities.json` | 사업기회 예시 24건 (진행중 15 + 상반기 실적 9) |
 | `data/sample/accounts.json` | 계정 + 설치베이스 예시 8건 |
 | `data/sample/sales_plan.json` | 2026년 판매 계획 (사업부×채널×월, 연 64억) |
-| `data/sample/sensing_events.json` | 외부 센싱 이벤트 예시 10건 (B2B/B2G 통합 스키마) |
+| `data/sample/sensing_events.json` | 외부 센싱 이벤트 예시 9건 (B2B/B2G 통합 스키마, 수집 소스는 `docs/DATA_SOURCE_FEASIBILITY.md` 판정 반영) |
 | `excel/sales_pipeline_template.xlsx` | 실무 관리용 엑셀 템플릿 (사업기회·판매계획·입력가이드) |
 | `excel/salesforce_import_sample.xlsx` | Salesforce Data Loader import용 변환 결과 + 매핑표 |
 
