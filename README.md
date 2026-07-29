@@ -14,7 +14,8 @@ Salesforce 데이터 + 외부 공개 데이터를 연계한 **실적 모니터�
 | `data/sample/sensing_events.json` | 외부 센싱 이벤트 예시 9건 (B2B/B2G 통합 스키마, 수집 소스는 `docs/DATA_SOURCE_FEASIBILITY.md` 판정 반영) |
 | `excel/sales_pipeline_template.xlsx` | 실무 관리용 엑셀 템플릿 (사업기회·판매계획·입력가이드) |
 | `excel/salesforce_import_sample.xlsx` | Salesforce Data Loader import용 변환 결과 + 매핑표 |
-| `excel/upload_demo.xlsx` | **업로드 시연용 파일** — 올리면 미리보기(신규 4·갱신 1·계획 1행) 후 [반영하기]로 적용, [히스토리]에서 되돌리기 가능 |
+| `excel/upload_demo.xlsx` | 업로드 시연용(표준 양식) — 미리보기(신규 4·갱신 1·계획 1행) 후 [반영하기], [히스토리]에서 되돌리기 |
+| `excel/field_sample.xlsx` | **업로드 시연용(현업 자유양식)** — 제목행·자유 컬럼명·억/백만 단위 혼재·자체 단계 용어('견적 제출'·'상담중' 등)를 플랫폼이 자동 해석해 표준 스키마로 변환하는 것을 시연 |
 
 ## 실행 방법 (localhost)
 
