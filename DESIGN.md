@@ -40,16 +40,31 @@ typography:
     fontSize: "16px"
     fontWeight: 600
     lineHeight: 1.5
+  body-emphasis:
+    fontFamily: "Pretendard Variable, Pretendard, Dotum, 돋움, AppleGothic, Helvetica, sans-serif"
+    fontSize: "15px"
+    fontWeight: 600
+    lineHeight: 1.5
   body:
     fontFamily: "Pretendard Variable, Pretendard, Dotum, 돋움, AppleGothic, Helvetica, sans-serif"
     fontSize: "14px"
     fontWeight: 400
     lineHeight: 1.57
+  body-compact:
+    fontFamily: "Pretendard Variable, Pretendard, Dotum, 돋움, AppleGothic, Helvetica, sans-serif"
+    fontSize: "13px"
+    fontWeight: 400
+    lineHeight: 1.55
   label:
     fontFamily: "Pretendard Variable, Pretendard, Dotum, 돋움, AppleGothic, Helvetica, sans-serif"
     fontSize: "12px"
     fontWeight: 400
     lineHeight: 1.5
+  label-small:
+    fontFamily: "Pretendard Variable, Pretendard, Dotum, 돋움, AppleGothic, Helvetica, sans-serif"
+    fontSize: "11px"
+    fontWeight: 400
+    lineHeight: 1.45
 rounded:
   tag: "4px"
   control: "6px"
@@ -147,11 +162,14 @@ Salesforce 문법을 명시적으로 거부한다. 사용자 고정 제약: 흰 
 `font-variant-numeric: tabular-nums`가 걸린다.
 
 ### Hierarchy
-- **Display** (700, 32px/40px, -0.02em): KPI 카드 금액 전용. 단위 "억"은 15px 600 Quiet Slate로 축소 병기.
+- **Display** (700, 32px/40px, -0.02em): KPI 카드 금액 전용.
 - **Headline** (700, 20px/28px, -0.01em): 페이지 타이틀 (Epson Ink).
-- **Title** (600, 16px/24px): 섹션 헤더 — 하단 2px 잉크 룰 동반.
-- **Body** (400, 14px/22px): 테이블·폼 기본. 테이블 셀은 13px.
-- **Label** (400, 12px/18px): 캡션, 단위·출처, 축 라벨, 필터 라벨 (Quiet Slate).
+- **Title** (600, 16px/24px): 섹션 헤더(2px 잉크 룰 동반), 드로어 타이틀, 파이프라인 금액.
+- **Body-Emphasis** (600, 15px): 탭 라벨, KPI 단위("억") 병기.
+- **Body** (400, 14px/22px): 본문·히트맵 셀 기본.
+- **Body-Compact** (400/600, 13px): 테이블 셀, 버튼, 셀렉트·입력, 상세 패널 본문 — 밀도가 필요한 데이터 UI 단계.
+- **Label** (400, 12px/18px): 캡션, 단위·출처, 필터 라벨, 태그, 테이블 헤더 (Quiet Slate).
+- **Label-Small** (400, 11px): 차트 축 tick, 히트맵 보조 수치 전용 최소 단계 — 이 아래 크기는 금지.
 
 **The Tabular Number Rule.** 수치 컬럼은 우측 정렬 + tabular-nums. 금액은 억원 소수 1자리(128.5억),
 100억 이상은 정수. 원 단위는 상세 화면에서만 콤마 병기.

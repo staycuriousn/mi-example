@@ -4,27 +4,126 @@
   "title": "Design System: Epson Korea MI Platform",
   "extensions": {
     "colorMeta": {
-      "epson-ink": { "role": "primary", "displayName": "Epson Ink", "canonical": "#00339b", "tonalRamp": ["#001030", "#001c56", "#00277a", "#00339b", "#3d64c8", "#8fa6e0", "#dce4f7", "#f2f5fc"] },
-      "paper-white": { "role": "neutral", "displayName": "Paper White", "canonical": "#ffffff", "tonalRamp": ["#1a2233", "#5a6478", "#8b93a5", "#b8bec9", "#d9dee8", "#eceff4", "#f7f8fb", "#ffffff"] },
-      "achieved-green": { "role": "status-good", "displayName": "Achieved Green", "canonical": "#0e7a55", "tonalRamp": ["#043d2b", "#0a5c40", "#0e7a55", "#3d9974", "#7dbba0", "#b3d8c8", "#e6f3ee", "#f4faf7"] },
-      "shortfall-rose": { "role": "status-serious", "displayName": "Shortfall Rose", "canonical": "#b3264c", "tonalRamp": ["#4d0f20", "#8a1d3a", "#b3264c", "#c95a77", "#dc93a7", "#ecc3cf", "#f9e9ee", "#fcf4f6"] }
+      "epson-ink": {
+        "role": "primary",
+        "displayName": "Epson Ink",
+        "canonical": "#00339b",
+        "tonalRamp": [
+          "#001030",
+          "#001c56",
+          "#00277a",
+          "#00339b",
+          "#3d64c8",
+          "#8fa6e0",
+          "#dce4f7",
+          "#f2f5fc"
+        ]
+      },
+      "paper-white": {
+        "role": "neutral",
+        "displayName": "Paper White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#1a2233",
+          "#5a6478",
+          "#8b93a5",
+          "#b8bec9",
+          "#d9dee8",
+          "#eceff4",
+          "#f7f8fb",
+          "#ffffff"
+        ]
+      },
+      "achieved-green": {
+        "role": "status-good",
+        "displayName": "Achieved Green",
+        "canonical": "#0e7a55",
+        "tonalRamp": [
+          "#043d2b",
+          "#0a5c40",
+          "#0e7a55",
+          "#3d9974",
+          "#7dbba0",
+          "#b3d8c8",
+          "#e6f3ee",
+          "#f4faf7"
+        ]
+      },
+      "shortfall-rose": {
+        "role": "status-serious",
+        "displayName": "Shortfall Rose",
+        "canonical": "#b3264c",
+        "tonalRamp": [
+          "#4d0f20",
+          "#8a1d3a",
+          "#b3264c",
+          "#c95a77",
+          "#dc93a7",
+          "#ecc3cf",
+          "#f9e9ee",
+          "#fcf4f6"
+        ]
+      }
     },
     "typographyMeta": {
-      "display": { "displayName": "KPI Display", "purpose": "KPI 카드 금액 전용, tabular-nums 필수." },
-      "title": { "displayName": "Section Title", "purpose": "섹션 헤더 — 하단 2px 잉크 룰 동반." }
+      "display": {
+        "displayName": "KPI Display",
+        "purpose": "KPI 카드 금액 전용, tabular-nums 필수."
+      },
+      "title": {
+        "displayName": "Section Title",
+        "purpose": "섹션 헤더 — 하단 2px 잉크 룰 동반."
+      },
+      "body-compact": {
+        "displayName": "Body Compact",
+        "purpose": "테이블 셀·버튼·입력 등 밀도가 필요한 데이터 UI(13px)."
+      },
+      "body-emphasis": {
+        "displayName": "Body Emphasis",
+        "purpose": "탭 라벨·KPI 단위(15px/600)."
+      },
+      "label-small": {
+        "displayName": "Label Small",
+        "purpose": "차트 축 tick 전용 최소 단계(11px)."
+      }
     },
     "shadows": [
-      { "name": "float", "value": "0 4px 16px rgba(0, 26, 86, 0.12)", "purpose": "드로어·팝오버 전용. 카드·패널·테이블에는 그림자 금지." }
+      {
+        "name": "float",
+        "value": "0 4px 16px rgba(0, 26, 86, 0.12)",
+        "purpose": "드로어·팝오버 전용. 카드·패널·테이블에는 그림자 금지."
+      }
     ],
     "motion": [
-      { "name": "ease-standard", "value": "150ms ease-out", "purpose": "호버·탭 전환·행 선택 기본." },
-      { "name": "drawer-slide", "value": "220ms ease-out", "purpose": "상세 패널 슬라이드." },
-      { "name": "chart-grow", "value": "400ms", "purpose": "차트 최초 렌더 성장 애니메이션." }
+      {
+        "name": "ease-standard",
+        "value": "150ms ease-out",
+        "purpose": "호버·탭 전환·행 선택 기본."
+      },
+      {
+        "name": "drawer-slide",
+        "value": "220ms ease-out",
+        "purpose": "상세 패널 슬라이드."
+      },
+      {
+        "name": "chart-grow",
+        "value": "400ms",
+        "purpose": "차트 최초 렌더 성장 애니메이션."
+      }
     ],
     "breakpoints": [
-      { "name": "chart-narrow", "value": "480px" },
-      { "name": "stack", "value": "860px" },
-      { "name": "single-column", "value": "1100px" }
+      {
+        "name": "chart-narrow",
+        "value": "480px"
+      },
+      {
+        "name": "stack",
+        "value": "860px"
+      },
+      {
+        "name": "single-column",
+        "value": "1100px"
+      }
     ]
   },
   "components": [
@@ -92,10 +191,26 @@
       "상태는 색+아이콘/라벨 병행"
     ],
     "rules": [
-      { "name": "The Ink-Only-Structure Rule", "body": "색이 구조를 만들 때는 잉크 계열만 쓴다. 회색처럼 보이는 모든 면은 Ink Mist(#F2F5FC)다.", "section": "colors" },
-      { "name": "The Never-Color-Alone Rule", "body": "달성/미달·상태는 항상 색 + ▲▼ 아이콘 또는 텍스트 라벨 병행.", "section": "colors" },
-      { "name": "The Tabular Number Rule", "body": "수치 컬럼은 우측 정렬 + tabular-nums. 금액은 억원 소수 1자리.", "section": "typography" },
-      { "name": "The Flat-Paper Rule", "body": "카드·패널·테이블에 그림자를 주지 않는다. 그림자가 필요해 보이면 여백이 부족한 것이다.", "section": "elevation" }
+      {
+        "name": "The Ink-Only-Structure Rule",
+        "body": "색이 구조를 만들 때는 잉크 계열만 쓴다. 회색처럼 보이는 모든 면은 Ink Mist(#F2F5FC)다.",
+        "section": "colors"
+      },
+      {
+        "name": "The Never-Color-Alone Rule",
+        "body": "달성/미달·상태는 항상 색 + ▲▼ 아이콘 또는 텍스트 라벨 병행.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Number Rule",
+        "body": "수치 컬럼은 우측 정렬 + tabular-nums. 금액은 억원 소수 1자리.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-Paper Rule",
+        "body": "카드·패널·테이블에 그림자를 주지 않는다. 그림자가 필요해 보이면 여백이 부족한 것이다.",
+        "section": "elevation"
+      }
     ],
     "dos": [
       "Do 섹션 헤더마다 2px Epson Ink 룰을 긋는다",
