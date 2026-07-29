@@ -423,10 +423,10 @@
       "qualTargetDate": null,
       "competitor": "경쟁사 C社",
       "relatedOpportunity": null,
-      "leadSource": "MI센싱",
-      "sensingEventId": "EVT-2026-0008",
+      "leadSource": "총판발굴",
+      "sensingEventId": null,
       "owner": "박지훈 과장",
-      "description": "교육청 개별 입찰공고 센싱 기반"
+      "description": "총판(Q오피스솔루션) 발굴 건"
     },
     {
       "opportunityId": "OPP-2026-0016",

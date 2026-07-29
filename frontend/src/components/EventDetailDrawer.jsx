@@ -51,7 +51,7 @@ const DETAIL_SECTIONS = {
     ],
   },
   installbase: {
-    title: '내부 설치베이스 파생 상세',
+    title: 'Salesforce 설치베이스 상세',
     rows: d => [
       ['대상 모델', d.model],
       ['설치 수량', `${d.quantity}대`],
@@ -125,7 +125,7 @@ export default function EventDetailDrawer({ event, accounts, opportunities, onCl
                         {event.sourceUrl}
                       </a>
                     ) : (
-                      '내부 데이터 파생 (외부 원문 없음)'
+                      'Salesforce 내부 데이터 (외부 원문 없음)'
                     )}
                   </dd>
                 </dl>

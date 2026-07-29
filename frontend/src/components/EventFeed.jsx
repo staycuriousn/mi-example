@@ -24,7 +24,13 @@ export default function EventFeed({ events, onPromote, updateEvent, onSelect, se
   const [source, setSource] = useState('ALL')
   const [sortBy, setSortBy] = useState('score') // 'score' | 'newest' | 'oldest'
 
-  const sources = useMemo(() => [...new Set(events.map(e => e.source))].sort(), [events])
+  // Salesforce 출처를 외부 데이터 출처보다 먼저 보여준다
+  const sources = useMemo(() => {
+    const all = [...new Set(events.map(e => e.source))]
+    const sf = all.filter(s => s.startsWith('Salesforce')).sort()
+    const ext = all.filter(s => !s.startsWith('Salesforce')).sort()
+    return [...sf, ...ext]
+  }, [events])
 
   const SORTS = {
     score: (a, b) => b.aiScore - a.aiScore || b.eventDate.localeCompare(a.eventDate),
