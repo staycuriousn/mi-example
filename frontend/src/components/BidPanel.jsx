@@ -29,11 +29,9 @@ export function EventTimeline({ events, today, onSelect }) {
   return (
     <div className="panel">
       <div className="tl">
-        {/* 축 헤더: 시작/종료 일자는 트랙 양 끝, 기준일 라벨은 기준선 바로 위 */}
+        {/* 축 헤더: 기준일 라벨이 기준선 바로 위에 붙는다 */}
         <div className="tlname" aria-hidden="true" />
         <div className="tlhead num">
-          <span className="tlstart">{new Date(min * 86400000).toISOString().slice(0, 10)}</span>
-          <span className="tlend">{new Date(max * 86400000).toISOString().slice(0, 10)}</span>
           <span className="tltodaylab" style={{ left: pct(t) }}>기준일 {today}</span>
         </div>
         {items.map(i => {
@@ -66,6 +64,12 @@ export function EventTimeline({ events, today, onSelect }) {
             </div>
           )
         })}
+        {/* 축 푸터: 시작/종료 일자는 타임라인 아래, 트랙 양 끝점에 정렬 */}
+        <div className="tlname" aria-hidden="true" />
+        <div className="tlfoot num">
+          <span className="tlstart">{new Date(min * 86400000).toISOString().slice(0, 10)}</span>
+          <span className="tlend">{new Date(max * 86400000).toISOString().slice(0, 10)}</span>
+        </div>
       </div>
       <div className="legend" style={{ marginTop: 12 }}>
         <span className="li"><span className="swatch" style={{ background: 'var(--ink-300)' }} /> B2G 입찰 공고→마감</span>
