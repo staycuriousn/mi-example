@@ -318,11 +318,10 @@ table.opps td.name { max-width: 320px; overflow: hidden; text-overflow: ellipsis
   padding: 0 4px; margin-right: 6px; background: var(--ink-100); color: var(--ink-900);
 }
 .catmark.g { background: var(--ok-bg); color: var(--ok); }
-.tl .tlhead { position: relative; height: 14px; font-size: 11px; }
+.tl .tlhead { position: relative; height: 16px; font-size: 11px; }
 .tl .tlhead .tltodaylab {
-  position: absolute; bottom: -7px; transform: translateX(-50%); line-height: 16px;
+  position: absolute; bottom: 2px; transform: translateX(-50%); line-height: 16px;
   color: var(--ink); font-weight: 600; white-space: nowrap; text-align: center;
-  background: #fff; padding: 0 4px; z-index: 2;
 }
 .tl .tlfoot { position: relative; height: 16px; font-size: 11px; color: var(--text-sub); }
 .tl .tlfoot .tlstart { position: absolute; left: 0; top: 0; }
