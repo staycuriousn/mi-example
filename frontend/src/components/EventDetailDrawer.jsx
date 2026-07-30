@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { buName } from '../lib/model.js'
+import { buName, isCompetitorAward } from '../lib/model.js'
 import FitPanel, { useFitAssessment } from './FitPanel.jsx'
 
 const STATUS_CLS = { 신규: 't-new', 검토중: 't-review', 승격: 't-promoted', 기각: 't-rejected', 보류: 't-hold' }
@@ -99,7 +99,12 @@ export default function EventDetailDrawer({ event, accounts, opportunities, onCl
                   <dt>트리거유형</dt><dd>{event.triggerType}</dd>
                   <dt>이벤트일자</dt><dd className="num">{event.eventDate}</dd>
                   <dt>상태</dt>
-                  <dd><span className={`tag ${STATUS_CLS[event.status] ?? ''}`}>{event.status}</span></dd>
+                  <dd>
+                    <span className={`tag ${STATUS_CLS[event.status] ?? ''}`}>{event.status}</span>
+                    {isCompetitorAward(event) && (
+                      <span className="tag t-lost" style={{ marginLeft: 6 }}>경쟁사 낙찰</span>
+                    )}
+                  </dd>
                   <dt>AI 스코어</dt><dd className="num">{event.aiScore}점 / 5점</dd>
                   <dt>신뢰도</dt><dd>{event.reliability} (소스 구조화 정도 + 내용 명확성)</dd>
                   <dt>관련 사업부</dt>

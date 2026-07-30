@@ -37,3 +37,9 @@ export const fmtWon = won => won.toLocaleString('ko-KR')
 export const fmtPct = r => (r == null ? '—' : `${Math.round(r * 100)}%`)
 
 export const rateBand = r => (r == null ? 'none' : r >= 1 ? 'ok' : r >= 0.7 ? 'warn' : 'risk')
+
+// 경쟁사 낙찰 판정: 낙찰업체가 확정됐고 우리(Epson)가 아닌 경우
+export const isCompetitorAward = e => {
+  const vendor = e?.detail?.type === 'bid' ? e.detail.awardedVendor : null
+  return Boolean(vendor) && !/엡손|epson/i.test(vendor)
+}
