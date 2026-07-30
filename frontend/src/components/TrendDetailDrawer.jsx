@@ -3,7 +3,24 @@ import { buName } from '../lib/model.js'
 
 export const SOURCE_LABELS = { PATENT: '특허', NEWS: '뉴스', RND: 'R&D과제', COMPETITOR: '경쟁사 발표' }
 
-const STATUS_CLS = { 신규: 't-new', 추적중: 't-review', 보고완료: 't-promoted' }
+const STATUS_CLS = { 신규: 't-new', 추적중: 't-review', 보고완료: 't-promoted', 중단: 't-hold' }
+
+// 상태 전이: 신규 →[추적 시작]→ 추적중 →[보고 처리]→ 보고완료 / [중단] ↔ [재개]
+export const TrendActions = ({ trend, updateTrend }) => (
+  <div className="evact" onClick={ev => ev.stopPropagation()}>
+    {trend.status === '신규' && (
+      <button className="btn btn-primary" onClick={() => updateTrend(trend.trendId, { status: '추적중' })}>추적 시작</button>
+    )}
+    {trend.status === '추적중' && (
+      <button className="btn btn-primary" onClick={() => updateTrend(trend.trendId, { status: '보고완료' })}>보고 처리</button>
+    )}
+    {trend.status === '중단' ? (
+      <button className="btn btn-quiet" onClick={() => updateTrend(trend.trendId, { status: '추적중' })}>재개</button>
+    ) : (
+      <button className="btn btn-quiet" onClick={() => updateTrend(trend.trendId, { status: '중단' })}>중단</button>
+    )}
+  </div>
+)
 const EVT_STATUS_CLS = { 신규: 't-new', 검토중: 't-review', 승격: 't-promoted', 기각: 't-rejected', 보류: 't-hold' }
 const OUT_CLS = { 수주: 't-won', 실주: 't-lost', 진행중: 't-new' }
 
@@ -29,7 +46,7 @@ const SIGNAL_DETAILS = {
   ],
 }
 
-export default function TrendDetailDrawer({ trend, signals, onClose }) {
+export default function TrendDetailDrawer({ trend, signals, onClose, updateTrend }) {
   const open = Boolean(trend)
   const [related, setRelated] = useState(null)
 
@@ -180,6 +197,11 @@ export default function TrendDetailDrawer({ trend, signals, onClose }) {
                     )}
                   </>
                 )}
+              </div>
+
+              <div className="dgroup">
+                <h4>처리</h4>
+                <TrendActions trend={trend} updateTrend={updateTrend} />
               </div>
             </div>
           </>

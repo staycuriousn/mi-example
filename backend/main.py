@@ -317,6 +317,22 @@ def tech_trends():
     return STORE["tech_trends"]
 
 
+# 상태 전이: 신규 →[추적 시작]→ 추적중 →[보고 처리]→ 보고완료 / 어디서든 [중단] → 중단 →[재개]→ 추적중
+TREND_STATUSES = {"신규", "추적중", "보고완료", "중단"}
+
+
+@app.patch("/api/tech-trends/{trend_id}")
+def update_trend(trend_id: str, patch: dict):
+    trend = next((t for t in STORE["tech_trends"]["trends"] if t["trendId"] == trend_id), None)
+    if not trend:
+        raise HTTPException(status_code=404, detail=f"trend not found: {trend_id}")
+    status = patch.get("status")
+    if status not in TREND_STATUSES:
+        raise HTTPException(status_code=422, detail=f"status는 {'/'.join(sorted(TREND_STATUSES))} 중 하나여야 합니다")
+    trend["status"] = status
+    return trend
+
+
 @app.get("/api/tech-trends/{trend_id}/related")
 def tech_trend_related(trend_id: str):
     """트렌드 ↔ 우리 파이프라인 연결: 사업부가 겹치는 사업기회·센싱 이벤트를

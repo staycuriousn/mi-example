@@ -301,6 +301,9 @@ table.opps td.name { max-width: 320px; overflow: hidden; text-overflow: ellipsis
 .fitsummary { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; font-size: 13px; line-height: 19px; color: var(--text-sub); }
 
 /* 탭3: 기술 트렌드 */
+.evcard.stopped { opacity: 0.65; }
+.evcard.stopped:hover, .evcard.stopped.sel { opacity: 1; }
+.dgroup .evact { display: flex; gap: 8px; }
 .minitl { display: inline-flex; align-items: center; gap: 3px; }
 .minitl .mdot { width: 6px; height: 6px; border-radius: 50%; background: var(--ink-050); }
 .minitl .mdot.f { background: var(--ink); }
