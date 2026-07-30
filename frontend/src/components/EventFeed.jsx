@@ -4,7 +4,7 @@ import { isCompetitorAward } from '../lib/model.js'
 const STATUS_CLS = { 신규: 't-new', 검토중: 't-review', 승격: 't-promoted', 기각: 't-rejected', 보류: 't-hold' }
 
 const Score = ({ v }) => (
-  <span className="score" aria-label={`AI 스코어 ${v}점 (5점 만점)`}>
+  <span className="score" aria-label={`우선순위 스코어 ${v}점 (5점 만점)`}>
     {[1, 2, 3, 4, 5].map(i => (
       <span key={i} className={`sdot ${i <= v ? 'f' : ''}`} />
     ))}
@@ -85,7 +85,7 @@ export default function EventFeed({ events, onPromote, updateEvent, onSelect, se
         </select>
         <select aria-label="정렬 기준" value={sortBy} onChange={e => setSortBy(e.target.value)}
           style={{ border: '1px solid var(--line)', borderRadius: 6, padding: '6px 8px', fontSize: 13 }}>
-          <option value="score">AI 스코어순</option>
+          <option value="score">우선순위 스코어순</option>
           <option value="newest">최신 이벤트순</option>
           <option value="oldest">오래된 이벤트순</option>
         </select>

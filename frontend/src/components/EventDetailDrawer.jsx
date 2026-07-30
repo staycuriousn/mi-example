@@ -105,10 +105,10 @@ export default function EventDetailDrawer({ event, accounts, opportunities, onCl
                       <span className="tag t-lost" style={{ marginLeft: 6 }}>경쟁사 낙찰</span>
                     )}
                   </dd>
-                  <dt>AI 스코어</dt><dd className="num">{event.aiScore}점 / 5점</dd>
+                  <dt>우선순위 스코어</dt><dd className="num">{event.aiScore}점 / 5점</dd>
                   <dt>신뢰도</dt><dd>{event.reliability} (소스 구조화 정도 + 내용 명확성)</dd>
                   <dt>관련 사업부</dt>
-                  <dd>{(event.estimatedBusinessUnit ?? []).map(buName).join(', ') || '—'} <span style={{ color: 'var(--text-sub)' }}>(AI 추정)</span></dd>
+                  <dd>{(event.estimatedBusinessUnit ?? []).map(buName).join(', ') || '—'}</dd>
                   <dt>관련 제품군</dt><dd>{event.estimatedProductFamily ?? '—'}</dd>
                   <dt>잠재 규모</dt>
                   <dd className="num">
