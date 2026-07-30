@@ -36,7 +36,7 @@ export default function FitPanel({ fit, loading }) {
   if (loading)
     return (
       <div className="dgroup">
-        <h4>대응 적합성 (AI 판단)</h4>
+        <h4>대응 적합성</h4>
         <div className="skel" style={{ height: 120 }} />
       </div>
     )
@@ -44,7 +44,7 @@ export default function FitPanel({ fit, loading }) {
 
   return (
     <div className="dgroup">
-      <h4>대응 적합성 (AI 판단)</h4>
+      <h4>대응 적합성</h4>
       <div className="fithead">
         <FitBadge fit={fit} />
         <span className="fitmethod">유사도 방식: {fit.methodLabel}</span>
