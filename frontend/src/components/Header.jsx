@@ -52,22 +52,24 @@ export default function Header({ tab, setTab, filters, setFilters, owners, reloa
 
   return (
     <header>
-      <div className="masthead">
-        <h1>EPSON Korea MI Platform</h1>
-        <span className="sub">Salesforce 연계 실적 모니터링 · 사전 센싱 — 예시 데이터</span>
-      </div>
+      <div className="stickytop">
+        <div className="masthead">
+          <h1>EPSON Korea MI Platform</h1>
+          <span className="sub">Salesforce 연계 실적 모니터링 · 사전 센싱 — 예시 데이터</span>
+        </div>
 
-      <nav className="tabbar" aria-label="주요 탭">
-        <button className={tab === 'tab1' ? 'active' : ''} onClick={() => setTab('tab1')}>
-          판매 계획 대비 실적
-        </button>
-        <button className={tab === 'tab2' ? 'active' : ''} onClick={() => setTab('tab2')}>
-          사업기회 요약
-        </button>
-        <button className={tab === 'tab3' ? 'active' : ''} onClick={() => setTab('tab3')}>
-          기술 트렌드
-        </button>
-      </nav>
+        <nav className="tabbar" aria-label="주요 탭">
+          <button className={tab === 'tab1' ? 'active' : ''} onClick={() => setTab('tab1')}>
+            판매 계획 대비 실적
+          </button>
+          <button className={tab === 'tab2' ? 'active' : ''} onClick={() => setTab('tab2')}>
+            사업기회 요약
+          </button>
+          <button className={tab === 'tab3' ? 'active' : ''} onClick={() => setTab('tab3')}>
+            기술 트렌드
+          </button>
+        </nav>
+      </div>
 
       <div className="toolbar">
         <div className="field">

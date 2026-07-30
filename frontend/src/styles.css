@@ -47,9 +47,13 @@ input, select { font-family: inherit; }
 .app { max-width: 1440px; margin: 0 auto; padding: 0 32px 64px; }
 
 /* ── 헤더 ────────────────────────────────────────────── */
-/* header를 display:contents로 풀어야 .tabbar의 sticky 기준이 .app(전체 스크롤 영역)이 된다.
-   header 박스 안에 갇혀 있으면 header 높이(약 190px)를 넘는 순간 sticky가 풀려버린다. */
+/* header를 display:contents로 풀어야 .stickytop의 sticky 기준이 .app(전체 스크롤 영역)이 된다.
+   header 박스 안에 갇혀 있으면 header 높이를 넘는 순간 sticky가 풀려버린다. */
 header { display: contents; }
+
+.stickytop {
+  position: sticky; top: 0; z-index: 30; background: var(--bg);
+}
 
 .masthead {
   display: flex; align-items: baseline; gap: 16px;
@@ -60,7 +64,6 @@ header { display: contents; }
 
 .tabbar {
   display: flex; gap: 24px; margin-top: 16px; border-bottom: 1px solid var(--line);
-  position: sticky; top: 0; z-index: 30; background: var(--bg);
 }
 .tabbar button {
   background: none; border: none; padding: 10px 2px 12px;
