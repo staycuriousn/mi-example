@@ -48,6 +48,8 @@ STORE = {
     "sales_plan": _load("sales_plan"),
     "sensing_events": _load("sensing_events"),
     "internal_resources": _load("internal_resources"),
+    "tech_signals": _load("tech_signals"),
+    "tech_trends": _load("tech_trends"),
 }
 
 BUS = {"PRT", "PJT", "RBT", "CMP"}
@@ -301,6 +303,76 @@ def fit_assessment(event_id: str):
         },
         "recommendedPartner": recommended_partner,
         "cautions": cautions,
+    }
+
+
+# ── 기술 트렌드 팔로업 (원시 시그널 → 트렌드 클러스터) ────────
+@app.get("/api/tech-signals")
+def tech_signals():
+    return STORE["tech_signals"]
+
+
+@app.get("/api/tech-trends")
+def tech_trends():
+    return STORE["tech_trends"]
+
+
+@app.get("/api/tech-trends/{trend_id}/related")
+def tech_trend_related(trend_id: str):
+    """트렌드 ↔ 우리 파이프라인 연결: 사업부가 겹치는 사업기회·센싱 이벤트를
+    유사도(임베딩, 폴백 TF-IDF)로 매칭한다. 실서비스에서는 담당자 수동 확정 링크 병행."""
+    trend = next((t for t in STORE["tech_trends"]["trends"] if t["trendId"] == trend_id), None)
+    if not trend:
+        raise HTTPException(status_code=404, detail=f"trend not found: {trend_id}")
+
+    bus = set(trend["businessUnit"])
+    query = f"{trend['title']} {trend['summary']} {trend['techCategory']} {' '.join(trend['tags'])}"
+
+    opps = [
+        o for o in STORE["opportunities"]["opportunities"]
+        if o.get("businessUnit") in bus and o["stage"] != LOST_STAGE
+    ]
+    method, ranked = similarity.rank(query, [_opp_doc(o) for o in opps])
+    rel_opps = [
+        {
+            "opportunityId": opps[i]["opportunityId"],
+            "name": opps[i]["name"],
+            "stage": opps[i]["stage"],
+            "outcome": _opp_outcome(opps[i]),
+            "amount": opps[i].get("amount"),
+            "owner": opps[i].get("owner"),
+            "similarity": round(s, 3),
+        }
+        for i, s in ranked[:3]
+        if s >= similarity.RELATED_FLOOR[method]
+    ]
+
+    evts = [
+        e for e in STORE["sensing_events"]["events"]
+        if bus & set(e.get("estimatedBusinessUnit") or [])
+    ]
+    method2, ranked2 = similarity.rank(
+        query, [f"{e['targetName']} {e['summary']} {e.get('estimatedProductFamily') or ''}" for e in evts]
+    )
+    rel_evts = [
+        {
+            "eventId": evts[i]["eventId"],
+            "targetName": evts[i]["targetName"],
+            "summary": evts[i]["summary"],
+            "status": evts[i]["status"],
+            "promotedOpportunityId": evts[i].get("promotedOpportunityId"),
+            "similarity": round(s, 3),
+        }
+        for i, s in ranked2[:3]
+        if s >= similarity.RELATED_FLOOR[method2]
+    ]
+
+    return {
+        "trendId": trend_id,
+        "method": method,
+        "opportunities": rel_opps,
+        "events": rel_evts,
+        "pipelineAmount": sum(o["amount"] or 0 for o in rel_opps),
     }
 
 

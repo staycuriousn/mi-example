@@ -1,0 +1,129 @@
+{
+  "_comment": "Epson 보유 기술영역 트렌드 클러스터 샘플 5건. data/sample/tech_signals.json의 원시 시그널을 signalIds로 묶어(시그널 수는 signalIds 길이로 계산 — 중복 저장 필드 없음), 개별 특허·뉴스 1건이 아니라 '유사 시그널의 누적'을 트렌드로 표현함. sensing_events.json의 이벤트→승격 사업기회 드릴다운 구조와 동일한 발상. momentum은 최근 시그널 발생 빈도 추이를 수동 평가한 값(실제 구현 시 자동 산출 로직 필요).",
+  "trends": [
+    {
+      "trendId": "TRD-2026-0001",
+      "title": "잉크젯 프린트헤드 노즐 밀도 고도화",
+      "businessUnit": [
+        "PRT"
+      ],
+      "techCategory": "잉크젯 프린트헤드(Micro Piezo)",
+      "summary": "노즐 밀도를 높여 인쇄 해상도를 개선하는 방향의 특허 출원이 이어지고 있고, 이에 따른 발열·헤드 변형 문제를 해결하는 소재 특허가 뒤따르며, 산업 전반에서도 노즐 미세화가 경쟁 축으로 부상 중이라는 보도가 나오고 있음. 자체 특허 출원과 시장 동향이 같은 방향을 가리키는 초기~중기 단계 트렌드.",
+      "signalIds": [
+        "SIG-2026-0001",
+        "SIG-2026-0002",
+        "SIG-2026-0003"
+      ],
+      "firstSeenDate": "2026-03-12",
+      "lastSeenDate": "2026-06-20",
+      "momentum": "증가",
+      "relevanceScore": 5,
+      "status": "추적중",
+      "tags": [
+        "잉크젯",
+        "프린트헤드",
+        "노즐밀도",
+        "Micro Piezo"
+      ]
+    },
+    {
+      "trendId": "TRD-2026-0002",
+      "title": "레이저 광원 프로젝터 경쟁 심화",
+      "businessUnit": [
+        "PJT"
+      ],
+      "techCategory": "3LCD/레이저 광원 프로젝션",
+      "summary": "Canon·BenQ 등 경쟁사가 레이저 광원·초단초점 신모델을 연이어 출시하고 있고, 광원 부품 단가 하락으로 램프 대비 가격 격차가 좁혀지며 시장 전환이 가속화되고 있다는 분석이 뒤따름. 경쟁사 제품 발표가 먼저 나타나고 가격 구조 변화가 후행하는 패턴.",
+      "signalIds": [
+        "SIG-2026-0004",
+        "SIG-2026-0005",
+        "SIG-2026-0006"
+      ],
+      "firstSeenDate": "2026-04-08",
+      "lastSeenDate": "2026-06-30",
+      "momentum": "증가",
+      "relevanceScore": 4,
+      "status": "추적중",
+      "tags": [
+        "프로젝터",
+        "레이저광원",
+        "초단초점",
+        "경쟁사동향"
+      ]
+    },
+    {
+      "trendId": "TRD-2026-0003",
+      "title": "협동로봇 안전인증 표준화",
+      "businessUnit": [
+        "RBT"
+      ],
+      "techCategory": "협동로봇 안전기준",
+      "summary": "국내 국책 R&D 과제로 협동로봇 안전기준 고도화가 시작된 시점에, 해외에서도 ISO/TS 15066 개정 논의가 맞물려 진행되고 있음. 국내외 표준화 움직임이 겹치는 단계로, 향후 인증 요건 변화가 로봇 사업부 제품 개발 로드맵에 영향을 줄 수 있음.",
+      "signalIds": [
+        "SIG-2026-0007",
+        "SIG-2026-0008"
+      ],
+      "firstSeenDate": "2026-02-25",
+      "lastSeenDate": "2026-06-05",
+      "momentum": "유지",
+      "relevanceScore": 4,
+      "status": "신규",
+      "tags": [
+        "협동로봇",
+        "안전인증",
+        "표준화",
+        "ISO15066"
+      ]
+    },
+    {
+      "trendId": "TRD-2026-0004",
+      "title": "반도체 후공정 장비 수요 확대",
+      "businessUnit": [
+        "CMP",
+        "PRT"
+      ],
+      "techCategory": "반도체 후공정·정밀 디스펜싱 장비",
+      "summary": "잉크젯 정밀 토출 기술을 반도체 패키징 공정에 적용한 자체 특허 출원과, 첨단 패키징 확산에 따른 후공정 장비 수요 증가, 국내 팹리스의 국산 장비 도입 검토까지 3개 시그널이 같은 방향을 가리킴. CMP·PRT 두 사업부에 걸친 교차 기회.",
+      "signalIds": [
+        "SIG-2026-0009",
+        "SIG-2026-0010",
+        "SIG-2026-0011"
+      ],
+      "firstSeenDate": "2026-01-30",
+      "lastSeenDate": "2026-07-08",
+      "momentum": "증가",
+      "relevanceScore": 5,
+      "status": "보고완료",
+      "tags": [
+        "반도체",
+        "후공정",
+        "패키징",
+        "디스펜싱",
+        "사업부교차"
+      ]
+    },
+    {
+      "trendId": "TRD-2026-0005",
+      "title": "웨어러블 디스플레이용 초소형 광학엔진",
+      "businessUnit": [
+        "PJT"
+      ],
+      "techCategory": "AR/웨어러블 광학엔진",
+      "summary": "AR 스마트글래스向 초소형 광학엔진 R&D 과제가 막 공고된 단계로, 아직 후속 시그널이 축적되지 않은 초기 포착 트렌드. 관련 시그널이 추가로 나타나는지 다음 주기에 재확인 필요.",
+      "signalIds": [
+        "SIG-2026-0012"
+      ],
+      "firstSeenDate": "2026-07-15",
+      "lastSeenDate": "2026-07-15",
+      "momentum": "유지",
+      "relevanceScore": 2,
+      "status": "신규",
+      "tags": [
+        "AR",
+        "웨어러블",
+        "광학엔진",
+        "초기포착"
+      ]
+    }
+  ]
+}

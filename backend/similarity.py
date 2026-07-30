@@ -12,6 +12,10 @@ import re
 
 MODEL_NAME = "intfloat/multilingual-e5-small"
 
+# "관련 있음"으로 볼 최소 유사도 — 점수 스케일이 방식마다 다르다
+# (e5 코사인은 0.7대에 몰리고, TF-IDF는 어휘가 다르면 0.0x대)
+RELATED_FLOOR = {"embedding": 0.80, "tfidf": 0.02}
+
 _model = None
 _model_failed = False
 _emb_cache = {}  # passage 텍스트 → 임베딩 (서버 프로세스 수명 동안 유지)

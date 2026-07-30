@@ -12,6 +12,9 @@ Salesforce 데이터 + 외부 공개 데이터를 연계한 **실적 모니터�
 | `data/sample/accounts.json` | 계정 + 설치베이스 예시 8건 |
 | `data/sample/sales_plan.json` | 2026년 판매 계획 (사업부×채널×월, 연 64억) |
 | `data/sample/sensing_events.json` | 외부 센싱 이벤트 예시 9건 (B2B/B2G 통합 스키마, 수집 소스는 `docs/DATA_SOURCE_FEASIBILITY.md` 판정 반영) |
+| `data/sample/internal_resources.json` | 내부 가용 리소스 (영업 담당·SE·데모 장비·파트너) — 승격 전 적합성 판단용 |
+| `data/sample/tech_signals.json` | 기술 트렌드 원시 시그널 13건 (특허·R&D과제·뉴스·경쟁사 발표) |
+| `data/sample/tech_trends.json` | 기술 트렌드 클러스터 5건 (탭3 「기술 트렌드」 데이터) |
 | `excel/sales_pipeline_template.xlsx` | 실무 관리용 엑셀 템플릿 (사업기회·판매계획·입력가이드) |
 | `excel/salesforce_import_sample.xlsx` | Salesforce Data Loader import용 변환 결과 + 매핑표 |
 | `excel/upload_demo.xlsx` | 업로드 시연용(표준 양식) — 미리보기(신규 4·갱신 1·계획 1행) 후 [반영하기], [히스토리]에서 되돌리기 |
