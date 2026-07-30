@@ -46,7 +46,6 @@ export function EventTimeline({ events, today, onSelect }) {
               <button className={`tlname linkrow ${compAward ? 'lost' : ''}`} title={i.e.summary} onClick={() => onSelect(i.e.eventId)}>
                 <span className={`catmark ${i.e.category === 'B2G' ? 'g' : 'b'}`}>{i.e.category}</span>
                 {i.e.targetName} · {i.e.triggerType.replace(/^TRG-\d+\s*/, '')}
-                {compAward && <span className="tag t-lost tlcomp">경쟁사 낙찰</span>}
               </button>
               <div className={`tltrack ${compAward ? 'lost' : ''}`}>
                 {i.isBid ? (
@@ -64,6 +63,15 @@ export function EventTimeline({ events, today, onSelect }) {
                   </div>
                 )}
                 {i.award && <div className="tlaward" style={{ left: pct(i.award) }} title={`낙찰 ${i.e.detail.awardDate}`} />}
+                {compAward && (
+                  <span
+                    className="tag t-lost tlcompmark"
+                    style={{ left: `calc(${pct(i.award ?? i.end)} + 8px)` }}
+                    title={`낙찰업체 ${i.e.detail.awardedVendor} · 상세는 경쟁사 낙찰 동향`}
+                  >
+                    경쟁사 낙찰 — {i.e.detail.awardedVendor.replace(/^경쟁사\s*/, '')}
+                  </span>
+                )}
                 <div className="tltoday" style={{ left: pct(t) }} title={`기준일 ${today}`} />
               </div>
             </div>
@@ -81,7 +89,7 @@ export function EventTimeline({ events, today, onSelect }) {
         <span className="li"><span className="swatch" style={{ background: 'var(--warn-bg)', border: '1px solid var(--warn)' }} /> 마감 임박(D-7)</span>
         <span className="li"><span className="swatch" style={{ background: 'var(--ink)', width: 8, height: 8, borderRadius: '50%' }} /> B2B 이벤트 발생 시점</span>
         <span className="li"><span className="swatch" style={{ background: 'var(--risk)', width: 3 }} /> 낙찰일</span>
-        <span className="li"><span className="tag t-lost tlcomp">경쟁사 낙찰</span> 확정 건 — 상세는 「경쟁사 낙찰 동향」</span>
+        <span className="li"><span className="tag t-lost">경쟁사 낙찰</span> 확정 건(흐림 처리) — 상세는 「경쟁사 낙찰 동향」</span>
       </div>
     </div>
   )
