@@ -64,6 +64,9 @@ export default function Header({ tab, setTab, filters, setFilters, owners, reloa
         <button className={tab === 'tab2' ? 'active' : ''} onClick={() => setTab('tab2')}>
           사업기회 요약
         </button>
+        <button className={tab === 'tab3' ? 'active' : ''} onClick={() => setTab('tab3')}>
+          기술 트렌드
+        </button>
       </nav>
 
       <div className="toolbar">

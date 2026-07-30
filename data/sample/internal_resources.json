@@ -1,0 +1,71 @@
+{
+  "_comment": "내부 가용 리소스 예시. 실서비스에서는 HR(인력)·자산관리(데모장비)·Salesforce 활동 데이터를 연계한다. 적합성 판단 로직은 backend/main.py /api/fit-assessment 참조.",
+  "salesReps": [
+    {
+      "name": "김민준 차장",
+      "businessUnits": ["PRT"],
+      "channels": ["직판", "총판"],
+      "segments": ["B2B기업"],
+      "specialty": "산업용 잉크젯·복합기 MPS 대형 계약"
+    },
+    {
+      "name": "이서연 대리",
+      "businessUnits": ["PRT"],
+      "channels": ["총판"],
+      "segments": ["B2B2C리테일", "B2B기업"],
+      "specialty": "리테일 POS·라벨프린터 총판 영업"
+    },
+    {
+      "name": "박지훈 과장",
+      "businessUnits": ["PJT", "PRT"],
+      "channels": ["직판", "총판"],
+      "segments": ["B2G공공"],
+      "specialty": "공공 입찰(나라장터)·교육시장"
+    },
+    {
+      "name": "최유진 차장",
+      "businessUnits": ["RBT"],
+      "channels": ["직판", "총판"],
+      "segments": ["B2B기업"],
+      "specialty": "SCARA·6축 로봇 제조라인 자동화"
+    },
+    {
+      "name": "정현우 부장",
+      "businessUnits": ["CMP"],
+      "channels": ["직판"],
+      "segments": ["B2B기업"],
+      "specialty": "부품·소재 B2B 장기 공급 계약"
+    }
+  ],
+  "techSupport": [
+    { "businessUnit": "PRT", "seHeadcount": 4, "utilization": 65, "maxConcurrentPoc": 3 },
+    { "businessUnit": "PJT", "seHeadcount": 2, "utilization": 50, "maxConcurrentPoc": 2 },
+    { "businessUnit": "RBT", "seHeadcount": 3, "utilization": 85, "maxConcurrentPoc": 2 },
+    { "businessUnit": "CMP", "seHeadcount": 2, "utilization": 40, "maxConcurrentPoc": 1 }
+  ],
+  "demoEquipment": [
+    { "productFamily": "산업용 잉크젯", "model": "WF-C21000", "total": 2, "onLoan": 1 },
+    { "productFamily": "복합기·MPS", "model": "AM-C550", "total": 4, "onLoan": 1 },
+    { "productFamily": "영수증프린터", "model": "TM-T88VII", "total": 10, "onLoan": 2 },
+    { "productFamily": "컬러 라벨프린터", "model": "CW-C6500", "total": 3, "onLoan": 0 },
+    { "productFamily": "교육용 프로젝터", "model": "EB-770F", "total": 5, "onLoan": 2 },
+    { "productFamily": "비즈니스 프로젝터", "model": "EB-PU2220B", "total": 2, "onLoan": 1 },
+    { "productFamily": "SCARA 로봇", "model": "GX8-B", "total": 2, "onLoan": 2 },
+    { "productFamily": "6축 로봇", "model": "C8XL-B", "total": 1, "onLoan": 0 },
+    { "productFamily": "금속분말", "model": "샘플 키트", "total": 6, "onLoan": 1 }
+  ],
+  "partners": [
+    {
+      "name": "P총판상사",
+      "businessUnits": ["PRT", "RBT"],
+      "productFamilies": ["영수증프린터", "컬러 라벨프린터", "SCARA 로봇"],
+      "regions": ["수도권", "충청"]
+    },
+    {
+      "name": "Q오피스솔루션",
+      "businessUnits": ["PRT", "PJT"],
+      "productFamilies": ["복합기·MPS", "교육용 프로젝터", "비즈니스 프로젝터"],
+      "regions": ["전국"]
+    }
+  ]
+}

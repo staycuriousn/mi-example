@@ -1,10 +1,12 @@
 {
-  "_comment": "Epson 보유 기술영역(사업부: PRT/PJT/RBT/CMP) 산업/기술 트렌드 팔로업용 원시 시그널 샘플 12건. 특허(KIPRIS Open API)·연구과제(NTIS Open API)·산업뉴스(빅카인즈 Open API)·경쟁사 발표(공식 IR/보도자료) 4종 소스 기준으로 설계, 크롤링 기반 소스는 배제(docs/DATA_SOURCE_FEASIBILITY.md 판정 톤 유지 — 실도입 전 각 API 이용약관 원문 확인 필요). trendId로 data/sample/tech_trends.json의 클러스터에 연결되며, 아직 클러스터링되지 않은 시그널은 trendId를 null로 둠. 스키마는 계획 문서(Epson 기술 트렌드 팔로업 — 예시 데이터/스키마 설계) 참조.",
+  "_comment": "Epson 보유 기술영역(사업부: PRT/PJT/RBT/CMP) 산업/기술 트렌드 팔로업용 원시 시그널 샘플 13건. 특허(KIPRIS Open API)·연구과제(NTIS Open API)·산업뉴스(빅카인즈 Open API)·경쟁사 발표(공식 IR/보도자료) 4종 소스 기준으로 설계, 크롤링 기반 소스는 배제(docs/DATA_SOURCE_FEASIBILITY.md 판정 톤 유지 — 실도입 전 각 API 이용약관 원문 확인 필요). trendId로 data/sample/tech_trends.json의 클러스터에 연결되며, 아직 클러스터링되지 않은 시그널은 trendId를 null로 둠. 스키마는 계획 문서(Epson 기술 트렌드 팔로업 — 예시 데이터/스키마 설계) 참조.",
   "signals": [
     {
       "signalId": "SIG-2026-0001",
       "trendId": "TRD-2026-0001",
-      "businessUnit": ["PRT"],
+      "businessUnit": [
+        "PRT"
+      ],
       "sourceType": "PATENT",
       "eventDate": "2026-03-12",
       "title": "고밀도 노즐 배열 잉크젯 프린트헤드 특허 공개",
@@ -24,7 +26,9 @@
     {
       "signalId": "SIG-2026-0002",
       "trendId": "TRD-2026-0001",
-      "businessUnit": ["PRT"],
+      "businessUnit": [
+        "PRT"
+      ],
       "sourceType": "PATENT",
       "eventDate": "2026-05-02",
       "title": "잉크젯 헤드 열변형 저감 소재 특허 공개",
@@ -44,7 +48,9 @@
     {
       "signalId": "SIG-2026-0003",
       "trendId": "TRD-2026-0001",
-      "businessUnit": ["PRT"],
+      "businessUnit": [
+        "PRT"
+      ],
       "sourceType": "NEWS",
       "eventDate": "2026-06-20",
       "title": "산업용 잉크젯 시장, 노즐 미세화 경쟁 본격화",
@@ -63,7 +69,9 @@
     {
       "signalId": "SIG-2026-0004",
       "trendId": "TRD-2026-0002",
-      "businessUnit": ["PJT"],
+      "businessUnit": [
+        "PJT"
+      ],
       "sourceType": "COMPETITOR",
       "eventDate": "2026-04-08",
       "title": "Canon, 레이저 광원 신형 프로젝터 라인업 발표",
@@ -82,7 +90,9 @@
     {
       "signalId": "SIG-2026-0005",
       "trendId": "TRD-2026-0002",
-      "businessUnit": ["PJT"],
+      "businessUnit": [
+        "PJT"
+      ],
       "sourceType": "COMPETITOR",
       "eventDate": "2026-05-19",
       "title": "BenQ, 초단초점 레이저 프로젝터 신모델 출시",
@@ -101,7 +111,9 @@
     {
       "signalId": "SIG-2026-0006",
       "trendId": "TRD-2026-0002",
-      "businessUnit": ["PJT"],
+      "businessUnit": [
+        "PJT"
+      ],
       "sourceType": "NEWS",
       "eventDate": "2026-06-30",
       "title": "레이저광원 프로젝터, 램프 대비 가격 격차 축소",
@@ -120,7 +132,9 @@
     {
       "signalId": "SIG-2026-0007",
       "trendId": "TRD-2026-0003",
-      "businessUnit": ["RBT"],
+      "businessUnit": [
+        "RBT"
+      ],
       "sourceType": "RND",
       "eventDate": "2026-02-25",
       "title": "협동로봇 안전인증 기준 고도화 국책과제 공고",
@@ -140,7 +154,9 @@
     {
       "signalId": "SIG-2026-0008",
       "trendId": "TRD-2026-0003",
-      "businessUnit": ["RBT"],
+      "businessUnit": [
+        "RBT"
+      ],
       "sourceType": "NEWS",
       "eventDate": "2026-06-05",
       "title": "협동로봇 안전 표준 개정 논의 본격화",
@@ -159,7 +175,10 @@
     {
       "signalId": "SIG-2026-0009",
       "trendId": "TRD-2026-0004",
-      "businessUnit": ["CMP", "PRT"],
+      "businessUnit": [
+        "CMP",
+        "PRT"
+      ],
       "sourceType": "PATENT",
       "eventDate": "2026-01-30",
       "title": "반도체 후공정용 정밀 디스펜싱 장비 특허 공개",
@@ -179,7 +198,9 @@
     {
       "signalId": "SIG-2026-0010",
       "trendId": "TRD-2026-0004",
-      "businessUnit": ["CMP"],
+      "businessUnit": [
+        "CMP"
+      ],
       "sourceType": "NEWS",
       "eventDate": "2026-04-22",
       "title": "반도체 후공정 장비 수요, 패키징 고도화로 확대",
@@ -198,7 +219,9 @@
     {
       "signalId": "SIG-2026-0011",
       "trendId": "TRD-2026-0004",
-      "businessUnit": ["CMP"],
+      "businessUnit": [
+        "CMP"
+      ],
       "sourceType": "NEWS",
       "eventDate": "2026-07-08",
       "title": "국내 팹리스, 후공정 국산 장비 도입 확대 검토",
@@ -217,7 +240,9 @@
     {
       "signalId": "SIG-2026-0012",
       "trendId": "TRD-2026-0005",
-      "businessUnit": ["PJT"],
+      "businessUnit": [
+        "PJT"
+      ],
       "sourceType": "RND",
       "eventDate": "2026-07-15",
       "title": "AR 스마트글래스용 초소형 광학엔진 연구과제 신규 공고",
@@ -237,7 +262,9 @@
     {
       "signalId": "SIG-2026-0013",
       "trendId": null,
-      "businessUnit": ["RBT"],
+      "businessUnit": [
+        "RBT"
+      ],
       "sourceType": "PATENT",
       "eventDate": "2026-07-22",
       "title": "로봇 관절용 고효율 감속기 구조 특허 공개",
