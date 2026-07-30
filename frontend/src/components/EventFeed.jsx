@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { isCompetitorAward } from '../lib/model.js'
 
 const STATUS_CLS = { 신규: 't-new', 검토중: 't-review', 승격: 't-promoted', 기각: 't-rejected', 보류: 't-hold' }
 
@@ -112,6 +113,7 @@ export default function EventFeed({ events, onPromote, updateEvent, onSelect, se
                 <span className="evorg">{e.targetName}</span>
                 <span className="evtrig">{e.triggerType}</span>
                 <span className={`tag ${STATUS_CLS[e.status] ?? ''}`}>{e.status}</span>
+                {isCompetitorAward(e) && <span className="tag t-lost">경쟁사 낙찰</span>}
                 <span className="evdate num">{e.eventDate}</span>
               </div>
               <p className="evsum">{e.summary}</p>

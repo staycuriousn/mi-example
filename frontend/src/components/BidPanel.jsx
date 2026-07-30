@@ -1,4 +1,6 @@
 // 이벤트 타임라인(B2B·B2G 통합, 2-E) + 경쟁사 낙찰 동향(2-F)
+import { isCompetitorAward } from '../lib/model.js'
+
 const dayOf = s => Math.floor(new Date(`${s}T00:00:00Z`).getTime() / 86400000)
 
 // B2G 입찰(bid)은 공고일→마감일 구간 막대, 그 외(B2B 공시·채용·예산·설치베이스)는 발생 시점 마커
@@ -37,13 +39,16 @@ export function EventTimeline({ events, today, onSelect }) {
         {items.map(i => {
           const closed = i.isBid && i.end < t
           const urgent = i.isBid && !closed && i.end - t <= 7
+          // 경쟁사 낙찰 확정 건: 대응 일정이 끝난 과거 정보 — 흐리게 + 배지 (상세는 경쟁사 낙찰 동향 표)
+          const compAward = isCompetitorAward(i.e)
           return (
             <div key={i.e.eventId} style={{ display: 'contents' }}>
-              <button className="tlname linkrow" title={i.e.summary} onClick={() => onSelect(i.e.eventId)}>
+              <button className={`tlname linkrow ${compAward ? 'lost' : ''}`} title={i.e.summary} onClick={() => onSelect(i.e.eventId)}>
                 <span className={`catmark ${i.e.category === 'B2G' ? 'g' : 'b'}`}>{i.e.category}</span>
                 {i.e.targetName} · {i.e.triggerType.replace(/^TRG-\d+\s*/, '')}
+                {compAward && <span className="tag t-lost tlcomp">경쟁사 낙찰</span>}
               </button>
-              <div className="tltrack">
+              <div className={`tltrack ${compAward ? 'lost' : ''}`}>
                 {i.isBid ? (
                   <div
                     className={`tlbar ${urgent ? 'urgent' : ''} ${closed ? 'closed' : ''}`}
@@ -76,6 +81,7 @@ export function EventTimeline({ events, today, onSelect }) {
         <span className="li"><span className="swatch" style={{ background: 'var(--warn-bg)', border: '1px solid var(--warn)' }} /> 마감 임박(D-7)</span>
         <span className="li"><span className="swatch" style={{ background: 'var(--ink)', width: 8, height: 8, borderRadius: '50%' }} /> B2B 이벤트 발생 시점</span>
         <span className="li"><span className="swatch" style={{ background: 'var(--risk)', width: 3 }} /> 낙찰일</span>
+        <span className="li"><span className="tag t-lost tlcomp">경쟁사 낙찰</span> 확정 건 — 상세는 「경쟁사 낙찰 동향」</span>
       </div>
     </div>
   )
