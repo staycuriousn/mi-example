@@ -134,7 +134,7 @@ header { display: contents; }
 .rate.risk { color: var(--risk); }
 
 /* ── 파이프라인 바 ───────────────────────────────────── */
-.pipeline { display: flex; gap: 8px; }
+.pipeline { display: flex; gap: 8px; margin-bottom: 20px; }
 .stagecell {
   flex: 1; position: relative; border: 1px solid var(--line); border-radius: 8px;
   background: var(--ink-050); padding: 12px 14px; text-align: left;

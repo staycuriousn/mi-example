@@ -15,14 +15,12 @@ const Skeleton = () => (
         <div key={i} className="skel" style={{ height: 118 }} />
       ))}
     </div>
-    <div className="section">
-      <div className="skel" style={{ height: 78 }} />
-    </div>
     <div className="section charts">
       <div className="skel" style={{ height: 320 }} />
       <div className="skel" style={{ height: 320 }} />
     </div>
     <div className="section">
+      <div className="skel" style={{ height: 78, marginBottom: 20 }} />
       <div className="skel" style={{ height: 360 }} />
     </div>
   </>
@@ -62,21 +60,20 @@ export default function Tab1({ data, error, retry, filters, setFilters }) {
     <>
       <KpiCards kpi={agg.kpi} label={periodLabel(filters)} />
 
-      <section className="section" aria-label="단계별 진행중 사업기회">
+      <section className="section" aria-label="사업 실적 현황">
+        <h2>사업 실적 현황</h2>
+        <div className="charts">
+          <MonthlyCombo rows={agg.monthly} actualKind={actualKind} setActualKind={setActualKind} />
+          <Heatmap grid={agg.hm} />
+        </div>
+      </section>
+
+      <section className="section" aria-label="사업기회 현황">
         <h2>
-          단계별 진행중 사업기회
+          사업기회 현황
           <span className="hint">단계를 클릭하면 아래 표가 해당 단계로 필터됩니다</span>
         </h2>
         <PipelineBar stages={agg.stages} active={stageFilter} onPick={s => setStageFilter(v => (v === s ? null : s))} />
-      </section>
-
-      <section className="section charts" aria-label="차트">
-        <MonthlyCombo rows={agg.monthly} actualKind={actualKind} setActualKind={setActualKind} />
-        <Heatmap grid={agg.hm} />
-      </section>
-
-      <section className="section" aria-label="사업기회별 현황">
-        <h2>사업기회별 현황</h2>
         <OppTable
           opps={data.opportunities}
           filters={filters}
