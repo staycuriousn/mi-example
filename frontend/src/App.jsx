@@ -64,6 +64,16 @@ export default function App() {
     }).catch(() => {})
   }
 
+  // 트렌드 상태 변경(추적 시작·보고 처리·중단·재개) — 화면 즉시 반영 + 백엔드 저장
+  const updateTrend = (trendId, patch) => {
+    setData(d => ({ ...d, trends: d.trends.map(t => (t.trendId === trendId ? { ...t, ...patch } : t)) }))
+    fetch(`/api/tech-trends/${trendId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    }).catch(() => {})
+  }
+
   // 승격 폼 저장 → 탭1 파이프라인(리드 발굴)에 즉시 추가 + 백엔드 저장 (Export에도 포함됨)
   const addOpportunity = opp => {
     setData(d => ({ ...d, opportunities: [...d.opportunities, opp] }))
@@ -95,7 +105,9 @@ export default function App() {
           addOpportunity={addOpportunity}
         />
       )}
-      {tab === 'tab3' && <Tab3 data={data} error={error} retry={load} filters={filters} />}
+      {tab === 'tab3' && (
+        <Tab3 data={data} error={error} retry={load} filters={filters} updateTrend={updateTrend} />
+      )}
     </div>
   )
 }

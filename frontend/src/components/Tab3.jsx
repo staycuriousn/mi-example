@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { buName } from '../lib/model.js'
-import TrendDetailDrawer, { SOURCE_LABELS } from './TrendDetailDrawer.jsx'
+import TrendDetailDrawer, { SOURCE_LABELS, TrendActions } from './TrendDetailDrawer.jsx'
 
 const MOMENTUM_GLYPH = { 증가: '▲ 증가', 유지: '— 유지', 감소: '▼ 감소' }
-const STATUS_CLS = { 신규: 't-new', 추적중: 't-review', 보고완료: 't-promoted' }
+const STATUS_CLS = { 신규: 't-new', 추적중: 't-review', 보고완료: 't-promoted', 중단: 't-hold' }
 
 const Score = ({ v }) => (
   <span className="score" aria-label={`관련도 ${v}점 (5점 만점)`}>
@@ -39,17 +39,19 @@ const Skeleton = () => (
   </>
 )
 
-export default function Tab3({ data, error, retry, filters }) {
+export default function Tab3({ data, error, retry, filters, updateTrend }) {
   const [status, setStatus] = useState('ALL')
   const [momentum, setMomentum] = useState('ALL')
   const [sortBy, setSortBy] = useState('relevance') // 'relevance' | 'latest'
   const [selectedId, setSelectedId] = useState(null)
 
+  // 중단된 트렌드는 본 목록에서 빼고 하단 별도 섹션에 모은다
   const trends = useMemo(() => {
     if (!data) return []
     return data.trends
       .filter(
         t =>
+          t.status !== '중단' &&
           (filters.bu === 'ALL' || t.businessUnit.includes(filters.bu)) &&
           (status === 'ALL' || t.status === status) &&
           (momentum === 'ALL' || t.momentum === momentum)
@@ -73,7 +75,12 @@ export default function Tab3({ data, error, retry, filters }) {
     )
   if (!data) return <Skeleton />
 
-  const all = data.trends.filter(t => filters.bu === 'ALL' || t.businessUnit.includes(filters.bu))
+  const all = data.trends.filter(
+    t => t.status !== '중단' && (filters.bu === 'ALL' || t.businessUnit.includes(filters.bu))
+  )
+  const stopped = data.trends.filter(
+    t => t.status === '중단' && (filters.bu === 'ALL' || t.businessUnit.includes(filters.bu))
+  )
   const signalsOf = t => data.signals.filter(s => t.signalIds.includes(s.signalId))
   const unassigned = data.signals.filter(
     s => s.trendId === null && (filters.bu === 'ALL' || s.businessUnit.includes(filters.bu))
@@ -88,9 +95,11 @@ export default function Tab3({ data, error, retry, filters }) {
           <div className="meta">시그널이 누적되며 관찰 중</div>
         </div>
         <div className="kpi">
-          <div className="cap">신규 포착</div>
-          <div className="val num">{all.filter(t => t.status === '신규').length}<span className="unit">건</span></div>
-          <div className="meta">이번 주기에 처음 클러스터링</div>
+          <div className="cap">신규 (검토 대기)</div>
+          <div className="val num" style={all.some(t => t.status === '신규') ? { color: 'var(--warn)' } : undefined}>
+            {all.filter(t => t.status === '신규').length}<span className="unit">건</span>
+          </div>
+          <div className="meta">{all.some(t => t.status === '신규') ? '[추적 시작] 또는 [중단] 판단 필요' : '모두 처리됨'}</div>
         </div>
         <div className="kpi">
           <div className="cap">모멘텀 증가</div>
@@ -166,6 +175,7 @@ export default function Tab3({ data, error, retry, filters }) {
                   <span className="num">{t.firstSeenDate} ~ {t.lastSeenDate}</span>
                   <MiniTimeline signals={sigs} />
                 </div>
+                <TrendActions trend={t} updateTrend={updateTrend} />
               </article>
             )
           })
@@ -194,10 +204,41 @@ export default function Tab3({ data, error, retry, filters }) {
         </section>
       )}
 
+      {stopped.length > 0 && (
+        <section className="section" aria-label="중단된 트렌드">
+          <h2>
+            중단된 트렌드
+            <span className="hint">모니터링 제외 판단 건 — [재개]로 추적을 다시 시작할 수 있습니다</span>
+          </h2>
+          {stopped.map(t => (
+            <article
+              key={t.trendId}
+              className={`evcard clickable stopped ${selectedId === t.trendId ? 'sel' : ''}`}
+              onClick={() => setSelectedId(t.trendId)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={ev => { if (ev.key === 'Enter') setSelectedId(t.trendId) }}
+            >
+              <div className="evtop">
+                <span className="evorg">{t.title}</span>
+                <span className="evtrig">{t.businessUnit.map(buName).join(' · ')}</span>
+                <span className="tag t-hold">중단</span>
+                <span className="evdate num">{t.firstSeenDate} ~ {t.lastSeenDate}</span>
+              </div>
+              <div className="evmeta">
+                <span>시그널 {t.signalIds.length}건 · 관련도 {t.relevanceScore}점</span>
+              </div>
+              <TrendActions trend={t} updateTrend={updateTrend} />
+            </article>
+          ))}
+        </section>
+      )}
+
       <TrendDetailDrawer
         trend={data.trends.find(t => t.trendId === selectedId) ?? null}
         signals={data.signals}
         onClose={() => setSelectedId(null)}
+        updateTrend={updateTrend}
       />
     </>
   )
