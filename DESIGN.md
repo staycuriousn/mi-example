@@ -38,32 +38,32 @@ typography:
     letterSpacing: "-0.01em"
   title:
     fontFamily: "Pretendard Variable, Pretendard, Dotum, 돋움, AppleGothic, Helvetica, sans-serif"
-    fontSize: "16px"
+    fontSize: "17px"
     fontWeight: 600
     lineHeight: 1.5
   body-emphasis:
     fontFamily: "Pretendard Variable, Pretendard, Dotum, 돋움, AppleGothic, Helvetica, sans-serif"
-    fontSize: "15px"
+    fontSize: "16px"
     fontWeight: 600
     lineHeight: 1.5
   body:
     fontFamily: "Pretendard Variable, Pretendard, Dotum, 돋움, AppleGothic, Helvetica, sans-serif"
-    fontSize: "14px"
+    fontSize: "15px"
     fontWeight: 400
     lineHeight: 1.57
   body-compact:
     fontFamily: "Pretendard Variable, Pretendard, Dotum, 돋움, AppleGothic, Helvetica, sans-serif"
-    fontSize: "13px"
+    fontSize: "14px"
     fontWeight: 400
     lineHeight: 1.55
   label:
     fontFamily: "Pretendard Variable, Pretendard, Dotum, 돋움, AppleGothic, Helvetica, sans-serif"
-    fontSize: "12px"
+    fontSize: "13px"
     fontWeight: 400
     lineHeight: 1.5
   label-small:
     fontFamily: "Pretendard Variable, Pretendard, Dotum, 돋움, AppleGothic, Helvetica, sans-serif"
-    fontSize: "11px"
+    fontSize: "12px"
     fontWeight: 400
     lineHeight: 1.45
 rounded:
@@ -166,12 +166,12 @@ Salesforce 문법을 명시적으로 거부한다. 사용자 고정 제약: 흰 
 ### Hierarchy
 - **Display** (700, 32px/40px, -0.02em): KPI 카드 금액 전용.
 - **Headline** (700, 20px/28px, -0.01em): 페이지 타이틀 (Epson Ink).
-- **Title** (600, 16px/24px): 섹션 헤더(2px 잉크 룰 동반), 드로어 타이틀, 파이프라인 금액.
-- **Body-Emphasis** (600, 15px): 탭 라벨, KPI 단위("억") 병기.
-- **Body** (400, 14px/22px): 본문·히트맵 셀 기본.
-- **Body-Compact** (400/600, 13px): 테이블 셀, 버튼, 셀렉트·입력, 상세 패널 본문 — 밀도가 필요한 데이터 UI 단계.
-- **Label** (400, 12px/18px): 캡션, 단위·출처, 필터 라벨, 태그, 테이블 헤더 (Quiet Slate).
-- **Label-Small** (400, 11px): 차트 축 tick, 히트맵 보조 수치 전용 최소 단계 — 이 아래 크기는 금지.
+- **Title** (600, 17px/25px): 섹션 헤더(2px 잉크 룰 동반), 드로어 타이틀, 파이프라인 금액.
+- **Body-Emphasis** (600, 16px): 탭 라벨, KPI 단위("억") 병기.
+- **Body** (400, 15px/23px): 본문·히트맵 셀 기본.
+- **Body-Compact** (400/600, 14px): 테이블 셀, 버튼, 셀렉트·입력, 상세 패널 본문 — 밀도가 필요한 데이터 UI 단계.
+- **Label** (400, 13px/19px): 캡션, 단위·출처, 필터 라벨, 태그, 테이블 헤더 (Quiet Slate).
+- **Label-Small** (400, 12px): 차트 축 tick, 히트맵 보조 수치 전용 최소 단계 — 이 아래 크기는 금지.
 
 **The Tabular Number Rule.** 수치 컬럼은 우측 정렬 + tabular-nums. 금액은 억원 소수 1자리(128.5억),
 100억 이상은 정수. 원 단위는 상세 화면에서만 콤마 병기.
@@ -209,7 +209,7 @@ Salesforce 문법을 명시적으로 거부한다. 사용자 고정 제약: 흰 
 ## Components
 
 ### Buttons
-- **Shape:** 6px radius, 8px 14px padding, 13px/600.
+- **Shape:** 6px radius, 8px 14px padding, 14px/600.
 - **Primary:** Epson Ink 채움 + 흰 글자. Hover: Ink Deepest. (Salesforce Export 등 주 동작)
 - **Ghost:** 흰 바탕 + Epson Ink 1px 테두리·글자. Hover: Ink Mist 바탕. (엑셀 업로드 등 보조 동작)
 - **Focus:** 2px Ink Mid 아웃라인, 오프셋 2px (전역 :focus-visible).
@@ -219,11 +219,11 @@ Salesforce 문법을 명시적으로 거부한다. 사용자 고정 제약: 흰 
   Ink) → 메타 행(건수 · 달성률 = 시맨틱 색 + ▲▼).
 
 ### Pipeline Stage Cell
-- Ink Mist 바탕 + 1px Hairline, 8px radius. 단계명 Label + 금액 16px/700 잉크 + 건수 병기. 클릭
+- Ink Mist 바탕 + 1px Hairline, 8px radius. 단계명 Label + 금액 17px/700 잉크 + 건수 병기. 클릭
   가능(버튼) — 활성 시 Epson Ink 채움/흰 글자, aria-pressed. 셀 사이 "›" 잉크 셰브론.
 
 ### Table
-- 헤더: 12px/600 Quiet Slate, 하단 2px 잉크 룰, 클릭 정렬(화살표 잉크색). 행: 1px Hairline 괘선,
+- 헤더: 13px/600 Quiet Slate, 하단 2px 잉크 룰, 클릭 정렬(화살표 잉크색). 행: 1px Hairline 괘선,
   호버 Ink Mist, 선택 Ink Wash. 줄무늬(zebra) 금지. 수치 우측 정렬.
 
 ### Tags (단계·상태)
