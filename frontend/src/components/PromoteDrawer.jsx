@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { BUS } from '../lib/model.js'
+import { FitBadge, useFitAssessment } from './FitPanel.jsx'
 
 const OWNERS = ['김민준 차장', '이서연 대리', '박지훈 과장', '최유진 차장', '정현우 부장']
 
@@ -30,6 +31,7 @@ export default function PromoteDrawer({ event, accounts, opportunities, onClose,
   const open = Boolean(event)
   const [form, setForm] = useState(null)
   const [err, setErr] = useState(null)
+  const { fit } = useFitAssessment(event?.eventId ?? null)
 
   useEffect(() => {
     if (event) {
@@ -37,6 +39,13 @@ export default function PromoteDrawer({ event, accounts, opportunities, onClose,
       setErr(null)
     }
   }, [event, accounts])
+
+  // 담당 미배정 이벤트는 적합성 판단의 추천 담당(로드 최소)을 기본값으로 채운다
+  useEffect(() => {
+    if (fit && event && !event.assignedOwner && OWNERS.includes(fit.recommendedOwner?.name)) {
+      setForm(f => (f ? { ...f, owner: fit.recommendedOwner.name } : f))
+    }
+  }, [fit, event])
 
   useEffect(() => {
     const h = e => { if (e.key === 'Escape') onClose() }
@@ -100,6 +109,16 @@ export default function PromoteDrawer({ event, accounts, opportunities, onClose,
                 <strong>원천 이벤트</strong> · {event.triggerType} · {event.eventDate} · {event.source}
                 <br />{event.summary}
               </div>
+
+              {fit && (
+                <div className="fitsummary">
+                  <FitBadge fit={fit} />
+                  <span>
+                    {fit.axes.find(a => a.key === 'similarCases')?.reasons[0]}
+                    {' · '}추천 담당 {fit.recommendedOwner.name}
+                  </span>
+                </div>
+              )}
 
               <div className="form">
                 {err && (

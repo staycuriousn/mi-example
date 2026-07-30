@@ -284,6 +284,21 @@ table.opps td.name { max-width: 320px; overflow: hidden; text-overflow: ellipsis
 .tag.t-rejected { background: var(--risk-bg); color: var(--risk); }
 .tag.t-hold { background: var(--ink-050); color: var(--neutral); }
 
+/* 대응 적합성 판단 */
+.fithead { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.fitmethod { font-size: 12px; color: var(--text-sub); }
+.fitaxes { display: grid; gap: 10px; margin-top: 12px; }
+.fitaxistop { display: flex; justify-content: space-between; font-size: 12px; color: var(--text); font-weight: 600; margin-bottom: 3px; }
+.fitbar { height: 6px; background: var(--ink-050); border-radius: 3px; overflow: hidden; }
+.fitfill { height: 100%; background: var(--ink); border-radius: 3px; }
+.fitreason { font-size: 12px; line-height: 18px; color: var(--text-sub); margin-top: 3px; }
+.fitsub { font-size: 12px; font-weight: 600; color: var(--ink); margin: 14px 0 6px; }
+.fitcase { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; margin-top: 6px; }
+.fitcasetop { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-sub); }
+.fitcasename { font-size: 13px; font-weight: 600; margin-top: 4px; }
+.fitcautions { margin-top: 12px; padding: 10px 12px 10px 28px; background: var(--warn-bg); border-radius: 6px; font-size: 12px; line-height: 19px; color: var(--warn); }
+.fitsummary { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 10px; font-size: 12px; line-height: 18px; color: var(--text-sub); }
+
 /* 분포 가로 막대 */
 .dist { display: grid; grid-template-columns: 132px 1fr 28px; gap: 6px 10px; align-items: center; font-size: 12px; }
 .dist .dlabel { color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

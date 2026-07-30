@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { buName } from '../lib/model.js'
+import FitPanel, { useFitAssessment } from './FitPanel.jsx'
 
 const STATUS_CLS = { 신규: 't-new', 검토중: 't-review', 승격: 't-promoted', 기각: 't-rejected', 보류: 't-hold' }
 
@@ -76,6 +77,8 @@ export default function EventDetailDrawer({ event, accounts, opportunities, onCl
     : null
   const section = event?.detail?.type ? DETAIL_SECTIONS[event.detail.type] : null
   const actionable = event && ['신규', '검토중', '보류'].includes(event.status)
+  // 승격 판단이 필요한(처리 가능한) 이벤트만 적합성 판단을 조회한다
+  const { fit, loading: fitLoading } = useFitAssessment(actionable ? event.eventId : null)
 
   return (
     <>
@@ -135,6 +138,8 @@ export default function EventDetailDrawer({ event, accounts, opportunities, onCl
                 <h4>수집 내용</h4>
                 <p className="prose">{event.summary}</p>
               </div>
+
+              {actionable && <FitPanel fit={fit} loading={fitLoading} />}
 
               {section && (
                 <div className="dgroup">

@@ -24,6 +24,10 @@ Salesforce 데이터 + 외부 공개 데이터를 연계한 **실적 모니터�
 pip install fastapi "uvicorn[standard]" python-multipart openpyxl
 uvicorn backend.main:app --port 8000
 
+# (선택) 유사 사업기회 검색을 의미 임베딩으로 쓰려면 — 미설치 시 TF-IDF 키워드 유사도로 자동 폴백
+# 최초 실행 시 모델(intfloat/multilingual-e5-small, ~120MB)이 자동 다운로드됩니다
+pip install sentence-transformers
+
 # 2) 프론트엔드 빌드 후 http://localhost:8000 접속
 cd frontend && npm install && npm run build
 
