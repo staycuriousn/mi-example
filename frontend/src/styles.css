@@ -345,10 +345,13 @@ table.opps td.name { max-width: 320px; overflow: hidden; text-overflow: ellipsis
 .tl .tlpoint .tldate { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--text-sub); white-space: nowrap; }
 .tl .linkrow { background: none; border: none; padding: 0; font-size: 13px; text-align: left; cursor: pointer; }
 .tl .linkrow:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
-/* 경쟁사 낙찰 확정 건 — 대응 일정이 끝난 과거 정보라 흐리게 (배지는 선명하게 유지) */
-.tl .linkrow.lost, .tl .tltrack.lost { opacity: 0.55; }
-.tl .linkrow.lost .tlcomp { opacity: 1; }
-.tlcomp { margin-left: 6px; font-size: 12px; padding: 1px 6px; }
+/* 경쟁사 낙찰 확정 건 — 이름·막대만 흐리고, 트랙 위 배지는 선명하게 남긴다 */
+.tl .linkrow.lost { opacity: 0.55; }
+.tl .tltrack.lost .tlbar, .tl .tltrack.lost .tlaward { opacity: 0.55; }
+.tl .tlcompmark {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  white-space: nowrap; font-size: 12px; padding: 1px 6px;
+}
 .catmark {
   display: inline-block; font-size: 12px; font-weight: 600; border-radius: 2px;
   padding: 0 4px; margin-right: 6px; background: var(--ink-100); color: var(--ink-900);
