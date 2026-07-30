@@ -17,6 +17,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
+from backend import similarity
+
 ROOT = Path(__file__).resolve().parent.parent
 SAMPLE_DIR = ROOT / "data" / "sample"
 DIST_DIR = ROOT / "frontend" / "dist"
@@ -45,6 +47,7 @@ STORE = {
     "accounts": _load("accounts"),
     "sales_plan": _load("sales_plan"),
     "sensing_events": _load("sensing_events"),
+    "internal_resources": _load("internal_resources"),
 }
 
 BUS = {"PRT", "PJT", "RBT", "CMP"}
@@ -100,6 +103,205 @@ def update_event(event_id: str, patch: dict):
         raise HTTPException(status_code=404, detail=f"event not found: {event_id}")
     ev.update({k: v for k, v in patch.items() if k in allowed})
     return ev
+
+
+# ── 대응 적합성 판단 (승격 전 내부 리소스·유사사례 근거 제시) ──
+WON_STAGES = {"계약 완료(수주)", "매출 인식"}
+LOST_STAGE = "실주(Lost)"
+BU_NAMES = {"PRT": "프린팅", "PJT": "프로젝터", "RBT": "로봇", "CMP": "부품·소재"}
+
+
+def _opp_outcome(o):
+    if o["stage"] in WON_STAGES:
+        return "수주"
+    if o["stage"] == LOST_STAGE:
+        return "실주"
+    return "진행중"
+
+
+def _opp_doc(o):
+    return " ".join(
+        str(o.get(k) or "")
+        for k in ("name", "productFamily", "productModel", "customerSegment", "painPoint", "description")
+    )
+
+
+def _clamp(v):
+    return max(0, min(100, round(v)))
+
+
+def _active_load(owner_name):
+    active = [
+        o for o in STORE["opportunities"]["opportunities"]
+        if o.get("owner") == owner_name and o["stage"] not in WON_STAGES and o["stage"] != LOST_STAGE
+    ]
+    return {"count": len(active), "amount": sum(o.get("amount") or 0 for o in active)}
+
+
+def _family_match(fam_a, fam_b):
+    """'산업용 잉크젯, 6축 로봇' 같은 복수 표기 대비 토큰 겹침으로 제품군을 느슨하게 매칭."""
+    ta = set(re.findall(r"[가-힣A-Za-z0-9]+", str(fam_a or "")))
+    tb = set(re.findall(r"[가-힣A-Za-z0-9]+", str(fam_b or "")))
+    return bool(ta & tb)
+
+
+@app.get("/api/fit-assessment/{event_id}")
+def fit_assessment(event_id: str):
+    """승격 전 판단 근거: 과거 유사사례(임베딩 유사도) + 내부 리소스 가용성 4개 축."""
+    ev = next((e for e in STORE["sensing_events"]["events"] if e["eventId"] == event_id), None)
+    if not ev:
+        raise HTTPException(status_code=404, detail=f"event not found: {event_id}")
+
+    res = STORE["internal_resources"]
+    opps = [
+        o for o in STORE["opportunities"]["opportunities"]
+        if o.get("sensingEventId") != event_id  # 이 이벤트에서 승격된 건 자기 자신이므로 제외
+    ]
+    bu = (ev.get("estimatedBusinessUnit") or ["PRT"])[0]
+    fam = ev.get("estimatedProductFamily") or ""
+    axes = []
+    cautions = []
+
+    # 1) 유사사례 실적 — 임베딩(폴백 TF-IDF) 유사도 Top-3 × 결과 가중
+    query = f"{ev['targetName']} {ev['summary']} {fam} {ev['triggerType']}"
+    method, ranked = similarity.rank(query, [_opp_doc(o) for o in opps])
+    similar_cases = []
+    for idx, score in ranked[:3]:
+        o = opps[idx]
+        matched_on = []
+        if o.get("businessUnit") == bu:
+            matched_on.append(f"사업부 {BU_NAMES.get(bu, bu)}")
+        if _family_match(o.get("productFamily"), fam):
+            matched_on.append("제품군 유사")
+        if ev["category"] == "B2G" and o.get("customerSegment") == "B2G공공":
+            matched_on.append("공공(B2G) 세그먼트")
+        similar_cases.append({
+            "opportunityId": o["opportunityId"],
+            "name": o["name"],
+            "outcome": _opp_outcome(o),
+            "stage": o["stage"],
+            "amount": o.get("amount"),
+            "owner": o.get("owner"),
+            "similarity": round(score, 3),
+            "matchedOn": matched_on,
+        })
+    best_sim = similar_cases[0]["similarity"] if similar_cases else 0.0
+    won_cnt = sum(1 for c in similar_cases if c["outcome"] == "수주")
+    lost_cnt = sum(1 for c in similar_cases if c["outcome"] == "실주")
+    sim_score = _clamp(best_sim * 100 + 12 * min(won_cnt, 2) - 15 * lost_cnt)
+    sim_reasons = []
+    if similar_cases:
+        top = similar_cases[0]
+        sim_reasons.append(f"최고 유사 사례 {top['opportunityId']} ({top['outcome']}) — 유사도 {round(top['similarity'] * 100)}%")
+        if won_cnt:
+            sim_reasons.append(f"유사 Top3 중 수주 성공 {won_cnt}건 → 대응 경험 보유")
+        if lost_cnt:
+            sim_reasons.append(f"유사 Top3 중 실주 {lost_cnt}건 → 실패 요인 사전 점검 필요")
+    else:
+        sim_reasons.append("비교할 과거 사업기회가 없습니다")
+    # 동일 사업부의 경쟁사 낙찰·스펙락인 이력은 주의사항으로
+    for other in STORE["sensing_events"]["events"]:
+        d = other.get("detail") or {}
+        if (
+            other["eventId"] != event_id
+            and d.get("type") == "bid"
+            and d.get("awardedVendor")
+            and bu in (other.get("estimatedBusinessUnit") or [])
+        ):
+            cautions.append(
+                f"동일 사업부 최근 경쟁사 낙찰 이력: {d['awardedVendor']} ({d['orderingOrg']}, 낙찰률 {d.get('awardRate')}%)"
+                + (" — 스펙락인 정황 주의" if str(d.get("competitorSpecLockIn", "")).startswith("예") else "")
+            )
+    axes.append({"key": "similarCases", "label": "유사사례 실적", "score": sim_score, "reasons": sim_reasons})
+
+    # 2) 영업 가용성 — 사업부 담당 후보의 진행중 로드(실시간 계산)
+    candidates = [r for r in res["salesReps"] if bu in r["businessUnits"]] or res["salesReps"]
+    loads = [(r, _active_load(r["name"])) for r in candidates]
+    loads.sort(key=lambda x: (x[1]["count"], x[1]["amount"]))
+    best_rep, best_load = loads[0]
+    assigned = ev.get("assignedOwner")
+    base_load = next((l for r, l in loads if r["name"] == assigned), best_load) if assigned else best_load
+    sales_score = _clamp(95 - 14 * base_load["count"])
+    sales_reasons = [
+        f"{assigned or best_rep['name']} 진행중 {base_load['count']}건 ({base_load['amount'] / 1e8:.1f}억) 담당중"
+    ]
+    if not assigned:
+        sales_reasons.append(f"미배정 — {BU_NAMES.get(bu, bu)} 담당 중 로드 최소는 {best_rep['name']}")
+    if base_load["count"] >= 5:
+        cautions.append("담당 영업 로드가 높습니다 — 배정 조정 또는 우선순위 검토 권장")
+    axes.append({"key": "salesCapacity", "label": "영업 가용성", "score": sales_score, "reasons": sales_reasons})
+
+    # 3) 기술지원·데모 여력 — SE 가동률 + 데모 장비 잔여 재고
+    se = next((t for t in res["techSupport"] if t["businessUnit"] == bu), None)
+    demo = next((d for d in res["demoEquipment"] if _family_match(d["productFamily"], fam)), None)
+    tech_score = 100 - (se["utilization"] if se else 50)
+    tech_reasons = []
+    if se:
+        tech_reasons.append(f"{BU_NAMES.get(bu, bu)} SE {se['seHeadcount']}명 · 가동률 {se['utilization']}% · 동시 PoC {se['maxConcurrentPoc']}건 가능")
+        if se["utilization"] >= 80:
+            cautions.append(f"{BU_NAMES.get(bu, bu)} 기술지원 가동률 {se['utilization']}% — Demo·PoC 일정 지연 가능")
+    if demo:
+        remain = demo["total"] - demo["onLoan"]
+        tech_reasons.append(f"데모 장비 {demo['productFamily']}({demo['model']}) 잔여 {remain}대 / 보유 {demo['total']}대")
+        if remain <= 0:
+            tech_score -= 20
+            cautions.append(f"데모 장비({demo['productFamily']}) 전량 대여중 — 회수 일정 확인 필요")
+        else:
+            tech_score += 10
+    d = ev.get("detail") or {}
+    if d.get("type") == "bid" and not d.get("awardDate"):
+        try:
+            days = (datetime.strptime(d["bidDeadline"], "%Y-%m-%d").date() - date(2026, 7, 29)).days
+            if 0 <= days <= 14:
+                tech_score -= 10
+                cautions.append(f"입찰 마감 D-{days} — 규격서 검토·제안 준비 기간 촉박")
+        except (KeyError, ValueError):
+            pass
+    axes.append({"key": "techCapacity", "label": "기술지원·데모 여력", "score": _clamp(tech_score), "reasons": tech_reasons})
+
+    # 4) 채널·파트너 커버리지
+    account = next((a for a in STORE["accounts"]["accounts"] if a["accountId"] == ev.get("matchedAccountId")), None)
+    partner = next(
+        (p for p in res["partners"] if bu in p["businessUnits"] and (not fam or any(_family_match(pf, fam) for pf in p["productFamilies"]))),
+        None,
+    )
+    ch_reasons = []
+    recommended_partner = None
+    if account:
+        ch_score = 85
+        ch_reasons.append(f"기존 계정 {account['accountName']} — 채널 {account['channel']} 거래 이력 보유")
+        if account["channel"] == "총판" and partner:
+            recommended_partner = {"name": partner["name"], "reason": f"{'/'.join(partner['productFamilies'][:2])} 취급 · 커버 지역 {'/'.join(partner['regions'])}"}
+            ch_score = 90
+    elif partner:
+        ch_score = 65
+        ch_reasons.append(f"신규 기관 — 총판 {partner['name']} 경유 대응 가능 ({'/'.join(partner['regions'])})")
+        recommended_partner = {"name": partner["name"], "reason": f"{BU_NAMES.get(bu, bu)} 제품군 취급 파트너"}
+    else:
+        ch_score = 50
+        ch_reasons.append("신규 기관 — 해당 제품군 커버 파트너 없음, 직판 신규 개척 필요")
+    axes.append({"key": "channelFit", "label": "채널·파트너 커버리지", "score": _clamp(ch_score), "reasons": ch_reasons})
+
+    weights = {"similarCases": 0.35, "salesCapacity": 0.25, "techCapacity": 0.25, "channelFit": 0.15}
+    fit_score = _clamp(sum(a["score"] * weights[a["key"]] for a in axes))
+    recommendation = "승격 권장" if fit_score >= 70 else "조건부 승격" if fit_score >= 40 else "보류 권장"
+
+    return {
+        "eventId": event_id,
+        "recommendation": recommendation,
+        "fitScore": fit_score,
+        "method": method,
+        "methodLabel": "의미 임베딩 (multilingual-e5-small)" if method == "embedding" else "키워드 유사도 (TF-IDF 폴백)",
+        "axes": axes,
+        "similarCases": similar_cases,
+        "recommendedOwner": {
+            "name": best_rep["name"],
+            "reason": f"{best_rep['specialty']} · 진행중 {best_load['count']}건으로 로드 최소",
+            "currentLoad": best_load,
+        },
+        "recommendedPartner": recommended_partner,
+        "cautions": cautions,
+    }
 
 
 # ── 엑셀 업로드 (실무 양식 → 스토어 반영) ──────────────────────
