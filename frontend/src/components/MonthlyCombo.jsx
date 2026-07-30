@@ -107,7 +107,8 @@ export default function MonthlyCombo({ rows, actualKind, setActualKind }) {
         </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={280}>
+      <div style={{ flex: 1, minHeight: 240 }}>
+      <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={rows} margin={{ top: 8, right: 8, bottom: 0, left: -16 }} barCategoryGap="28%">
           <CartesianGrid vertical={false} stroke="#d9dee8" strokeWidth={1} />
           <XAxis
@@ -144,6 +145,7 @@ export default function MonthlyCombo({ rows, actualKind, setActualKind }) {
           />
         </ComposedChart>
       </ResponsiveContainer>
+      </div>
     </div>
   )
 }
