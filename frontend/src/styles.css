@@ -144,7 +144,8 @@ input, select { font-family: inherit; }
 .stagecell:last-child::after { display: none; }
 
 /* ── 차트 영역 ───────────────────────────────────────── */
-.charts { display: grid; grid-template-columns: 3fr 2fr; gap: 24px; align-items: start; }
+.charts { display: grid; grid-template-columns: 3fr 2fr; gap: 24px; align-items: stretch; }
+.charts .panel { display: flex; flex-direction: column; }
 .panel { border: 1px solid var(--line); border-radius: 8px; padding: 16px; background: #fff; }
 .panel .phead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; margin-bottom: 12px; }
 .panel .ptitle { font-size: 15px; font-weight: 600; }
