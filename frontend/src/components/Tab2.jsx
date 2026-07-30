@@ -103,7 +103,7 @@ export default function Tab2({ data, error, retry, filters, updateEvent, addOppo
         <div>
           <h2>
             센싱 이벤트 피드
-            <span className="hint">기본 AI 스코어순, 정렬 변경 가능 · 승격 시 탭1 파이프라인(리드 발굴)에 추가됩니다</span>
+            <span className="hint">기본 우선순위 스코어순, 정렬 변경 가능 · 승격 시 탭1 파이프라인(리드 발굴)에 추가됩니다</span>
           </h2>
           <EventFeed
             events={events}
